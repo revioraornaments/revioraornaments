@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Reviora Admin — Dashboard</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23A68A5B' d='M12 0C12.9 6.9 17.1 11.1 24 12C17.1 12.9 12.9 17.1 12 24C11.1 17.1 6.9 12.9 0 12C6.9 11.1 11.1 6.9 12 0Z'/%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  html{scroll-behavior:smooth}
+  body{background:#F6EFE5;color:#4A3B2A;font-family:Manrope,system-ui,sans-serif;-webkit-font-smoothing:antialiased;margin:0}
+  .serif{font-family:'Cormorant Garamond',Georgia,serif}
+  ::selection{background:rgba(166,138,91,.25)}
+  :focus-visible{outline:2px solid #A68A5B;outline-offset:2px;border-radius:4px}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .fade-up{animation:fadeUp .45s ease both}
+  .skeleton{background:linear-gradient(110deg,#EDE3D2 30%,#F7F1E6 50%,#EDE3D2 70%);background-size:200% 100%;animation:sk 1.4s linear infinite}
+  @keyframes sk{to{background-position:-200% 0}}
+</style>
+</head>
+<body>
+<noscript><p style="padding:2rem;text-align:center">Reviora Admin — please enable JavaScript.</p></noscript>
+<div id="admin-root">
+  <div id="admin-boot" style="min-height:70vh;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',Georgia,serif;font-size:22px;letter-spacing:.35em;color:#4A3B2A">ADMIN&nbsp;·&nbsp;LOADING…</div>
+</div>
+
+<script type="text/reviora-admin" id="reviora-admin">
+const { useState, useEffect, useMemo, useRef, useContext, createContext } = React;
+
+/* ============================================================
+   CONFIG — fill in your Supabase project URL + publishable key
+   ============================================================ */
+const CONFIG = {
+  SUPABASE_URL: 'https://hdehdkofypgjiaakbzoz.supabase.co',
+  /* REPLACE: Supabase Dashboard → Project Settings → API → "Publishable key" (sb_publishable_...) */
+  SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_4dviwRWhXlVF9-6X7LR57A_SJHy3NNZ',
+  STORAGE_BUCKET: 'product-images',
+};
+const EDGE_FUNCTIONS_BASE = CONFIG.SUPABASE_URL.replace(/\/$/, '') + '/functions/v1';
+
+/* In-memory-only session token — never written to localStorage/sessionStorage */
+let ADMIN_SESSION = { token: null, expiresAt: 0 };
+
+const cx = (...a) => a.filter(Boolean).join(' ');
+const CATEGORIES = ['Necklaces','Earrings','Bracelets','Rings','Chains','Other Accessories'];
+const COLLECTIONS = [
+  { id: 'featured',    label: 'Featured Collection' },
+  { id: 'new_arrival', label: 'New Arrivals' },
+  { id: 'best_seller', label: 'Best Sellers' },
+  { id: 'regular',     label: 'Regular / All Other Products' },
+  { id: 'unlisted',    label: 'Unlisted (hidden)' },
+];
+const AVAILABILITY = [
+  { id: 'in_stock',      label: 'In Stock' },
+  { id: 'out_of_stock',  label: 'Out of Stock' },
+  { id: 'made_to_order', label: 'Made to Order' },
+];
+
+const AdminAPI = {
+  isConfigured() {
+    return CONFIG.SUPABASE_URL && !CONFIG.SUPABASE_URL.includes('YOUR-PROJECT') &&
+           CONFIG.SUPABASE_PUBLISHABLE_KEY &&
+           CONFIG.SUPABASE_PUBLISHABLE_KEY.startsWith('sb_publishable_') &&
+           !CONFIG.SUPABASE_PUBLISHABLE_KEY.includes('YOUR_KEY');
+  },
+  async call(name, body = {}) {
+    if (!this.isConfigured()) throw new Error('Supabase not configured. Set SUPABASE_URL + SUPABASE_PUBLISHABLE_KEY.');
+    const headers = { 'Content-Type': 'application/json', apikey: CONFIG.SUPABASE_PUBLISHABLE_KEY };
+    if (ADMIN_SESSION.token) headers.Authorization = `Bearer ${ADMIN_SESSION.token}`;
+    const res = await fetch(`${EDGE_FUNCTIONS_BASE}/${name}`, { method: 'POST', headers, body: JSON.stringify(body || {}) });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || `Admin ${name} failed (${res.status})`);
+    return data;
+  },
+};
+
+/* ---------------- ICONS ---------------- */
+const IconSparkle = ({ className = 'w-4 h-4' }) => (<svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden="true"><path d="M12 0C12.9 6.9 17.1 11.1 24 12C17.1 12.9 12.9 17.1 12 24C11.1 17.1 6.9 12.9 0 12C6.9 11.1 11.1 6.9 12 0Z"/></svg>);
+const IconClose = ({ className = 'w-5 h-5' }) => (<svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>);
+const IconPlus = ({ className = 'w-4 h-4' }) => (<svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>);
+const IconEdit = ({ className = 'w-4 h-4' }) => (<svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5Z"/></svg>);
+const IconTrash = ({ className = 'w-4 h-4' }) => (<svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 6h18M8 6v-2a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>);
+const IconEye = ({ className = 'w-4 h-4' }) => (<svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>);
+const IconUp = ({ className = 'w-4 h-4' }) => (<svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>);
+const IconDown = ({ className = 'w-4 h-4' }) => (<svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg>);
+
+function Btn({ onClick, variant = 'primary', size = 'md', className, children, disabled, type = 'button', ariaLabel, href }) {
+  const base = 'inline-flex items-center justify-center gap-2 rounded-full font-semibold tracking-[0.18em] uppercase transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.97]';
+  const sizes = { sm: 'text-[10px] px-4 py-2', md: 'text-[11px] px-6 py-3', lg: 'text-xs px-8 py-3.5' };
+  const variants = { primary: 'bg-cocoa text-ivory hover:bg-gold', gold: 'bg-gold text-ivory hover:bg-cocoa', outline: 'border border-cocoa/30 text-cocoa hover:border-gold hover:text-gold bg-white/60', danger: 'bg-red-700 text-ivory hover:bg-red-800' };
+  const cls = cx(base, sizes[size], variants[variant], className);
+  if (href) return <a href={href} className={cls} aria-label={ariaLabel}>{children}</a>;
+  return <button type={type} className={cls} onClick={onClick} disabled={disabled} aria-label={ariaLabel}>{children}</button>;
+}
+function Field({ label, error, children, required }) {
+  return (<label className="block"><span className="text-[10px] font-bold tracking-[0.25em] uppercase text-cocoa/60">{label} {required && <span className="text-gold">*</span>}</span><div className="mt-1.5">{children}</div>{error && <p className="text-[11px] text-red-700 mt-1">{error}</p>}</label>);
+}
+const inputCls = 'w-full bg-white border border-beige rounded-xl px-4 py-2.5 text-sm outline-none focus:border-gold transition-colors';
+
+/* ---------------- AUTH ---------------- */
+const AuthContext = createContext({ authed: false, login: async () => {}, logout: async () => {} });
+const useAdminAuth = () => useContext(AuthContext);
+function AuthProvider({ children }) {
+  const [authed, setAuthed] = useState(false);
+  const login = async (username, password) => {
+    const r = await AdminAPI.call('admin-login', { username, password });
+    if (!r.token) throw new Error('Login failed');
+    ADMIN_SESSION = { token: r.token, expiresAt: Date.now() + (r.expires_in || 3600) * 1000 };
+    setAuthed(true);
+  };
+  const logout = async () => {
+    try { await AdminAPI.call('admin-logout', {}); } catch (e) {}
+    ADMIN_SESSION = { token: null, expiresAt: 0 };
+    setAuthed(false);
+  };
+  useEffect(() => {
+    const t = setInterval(() => { if (authed && ADMIN_SESSION.expiresAt && Date.now() > ADMIN_SESSION.expiresAt) logout(); }, 60_000);
+    return () => clearInterval(t);
+  }, [authed]);
+  return <AuthContext.Provider value={{ authed, login, logout }}>{children}</AuthContext.Provider>;
+}
+
+function LoginScreen() {
+  const { login } = useAdminAuth();
+  const [u, setU] = useState('');
+  const [p, setP] = useState('');
+  const [err, setErr] = useState('');
+  const [busy, setBusy] = useState(false);
+  const submit = async (e) => {
+    e.preventDefault();
+    setErr(''); setBusy(true);
+    try { await login(u.trim(), p); }
+    catch (e2) { setErr(e2.message || 'Login failed'); }
+    finally { setBusy(false); }
+  };
+  return (
+    <main className="min-h-screen flex items-center justify-center px-4 py-10">
+      <form onSubmit={submit} className="w-full max-w-sm rounded-3xl border border-beige bg-ivory p-8 fade-up">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-full border border-gold/40 flex items-center justify-center"><IconSparkle className="w-5 h-5 text-gold"/></div>
+          <div><p className="serif text-xl tracking-[0.22em]">REVÍORA</p><p className="text-[9px] tracking-[0.4em] text-gold font-semibold">ADMIN</p></div>
+        </div>
+        <p className="text-xs text-cocoa/65 mt-6">Sign in with your admin credentials. Sessions are short-lived and never stored in browser storage.</p>
+        <div className="mt-6 space-y-3">
+          <Field label="Username" required><input className={inputCls} value={u} onChange={e => setU(e.target.value)} autoComplete="username" required/></Field>
+          <Field label="Password / Access code" required><input className={inputCls} type="password" value={p} onChange={e => setP(e.target.value)} autoComplete="current-password" required/></Field>
+        </div>
+        {err && <p className="text-[11px] text-red-700 mt-3">{err}</p>}
+        {!AdminAPI.isConfigured() && (<p className="text-[10px] text-cocoa/50 italic mt-3">Supabase isn't configured. Set SUPABASE_URL + SUPABASE_PUBLISHABLE_KEY and deploy the admin-login Edge Function.</p>)}
+        <div className="mt-6"><Btn type="submit" variant="primary" className="w-full" disabled={busy}>{busy ? 'Signing in…' : 'Sign In'}</Btn></div>
+        <p className="text-[10px] text-cocoa/50 mt-5 text-center">Unauthorized access attempts are rate-limited and logged.</p>
+      </form>
+    </main>
+  );
+}
+
+function Dashboard() {
+  const { logout } = useAdminAuth();
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [view, setView] = useState('list');
+  const [editing, setEditing] = useState(null);
+
+  const reload = async () => {
+    setLoading(true); setError('');
+    try {
+      const r = await AdminAPI.call('admin-products-list', {});
+      setProducts(r.products || []);
+    } catch (e) { setError(e.message); }
+    finally { setLoading(false); }
+  };
+  useEffect(() => { reload(); }, []);
+
+  const onDelete = async (product) => {
+    if (!window.confirm(`Delete "${product.name}" permanently? This cannot be undone.`)) return;
+    try { await AdminAPI.call('admin-products-delete', { id: product.id }); reload(); }
+    catch (e) { alert(e.message); }
+  };
+  const onTogglePublish = async (product) => {
+    try { await AdminAPI.call('admin-products-update', { id: product.id, patch: { published: !product.published } }); reload(); }
+    catch (e) { alert(e.message); }
+  };
+  const onToggleUnlist = async (product) => {
+    try {
+      const next = product.collection_type === 'unlisted' ? 'regular' : 'unlisted';
+      await AdminAPI.call('admin-products-update', { id: product.id, patch: { collection_type: next } });
+      reload();
+    } catch (e) { alert(e.message); }
+  };
+
+  return (
+    <div className="min-h-screen">
+      <header className="bg-ivory border-b border-beige">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3"><IconSparkle className="w-4 h-4 text-gold"/><span className="serif text-lg tracking-[0.22em]">REVÍORA</span><span className="text-[9px] tracking-[0.4em] text-gold font-semibold">ADMIN</span></div>
+          <div className="flex items-center gap-2">
+            <a href="./index.html" className="text-[10px] tracking-[0.2em] uppercase text-cocoa/60 hover:text-gold">View Site ↗</a>
+            <Btn variant="outline" size="sm" onClick={logout}>Sign out</Btn>
+          </div>
+        </div>
+      </header>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        {view === 'list' && (<>
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+            <div><h1 className="serif text-3xl">Products</h1><p className="text-xs text-cocoa/65 mt-1">Manage the catalogue. Unlisted items are hidden from the public site immediately.</p></div>
+            <Btn variant="gold" onClick={() => { setEditing(null); setView('new'); }}><IconPlus/>Add Product</Btn>
+          </div>
+          {!AdminAPI.isConfigured() && (<div className="rounded-2xl border border-gold/50 bg-gold/5 p-4 text-xs text-cocoa/75 mb-5">Supabase isn't configured. Set <code>SUPABASE_URL</code> + <code>SUPABASE_PUBLISHABLE_KEY</code> and deploy the admin Edge Functions.</div>)}
+          {error && <div className="rounded-2xl border border-red-300 bg-red-50 p-4 text-sm text-red-800 mb-5">{error}</div>}
+          {loading ? (<div className="space-y-2">{Array.from({length:5}).map((_,i)=><div key={i} className="h-16 rounded-xl skeleton"/>)}</div>)
+            : products.length === 0 ? (<div className="text-center py-20 border border-dashed border-beige rounded-3xl"><IconSparkle className="w-6 h-6 text-gold mx-auto"/><p className="serif text-2xl mt-4">No products yet.</p><p className="text-sm text-cocoa/60 mt-2">Once configured, products will appear here.</p></div>)
+            : (
+              <div className="overflow-x-auto rounded-2xl border border-beige bg-ivory">
+                <table className="min-w-full text-sm">
+                  <thead className="bg-cream/70 text-[10px] tracking-[0.2em] uppercase text-cocoa/70">
+                    <tr><th className="text-left p-3">Image</th><th className="text-left p-3">Name</th><th className="text-left p-3">SKU</th><th className="text-left p-3">Category</th><th className="text-left p-3">Price</th><th className="text-left p-3">Sale</th><th className="text-left p-3">Availability</th><th className="text-left p-3">Collection</th><th className="text-left p-3">Published</th><th className="text-left p-3">Actions</th></tr>
+                  </thead>
+                  <tbody className="divide-y divide-beige/60">
+                    {products.map(p => (
+                      <tr key={p.id} className="hover:bg-cream/40">
+                        <td className="p-3"><div className="w-10 h-12 rounded-md bg-beige/40 overflow-hidden">{p.image_url && <img src={p.image_url} alt="" className="w-full h-full object-cover"/>}</div></td>
+                        <td className="p-3 font-medium">{p.name}</td>
+                        <td className="p-3 text-cocoa/70">{p.sku}</td>
+                        <td className="p-3 text-cocoa/70">{p.category}</td>
+                        <td className="p-3">₹{p.price}</td>
+                        <td className="p-3">{p.sale_price ? <span className="text-gold">₹{p.sale_price}</span> : <span className="text-cocoa/40">—</span>}</td>
+                        <td className="p-3 text-cocoa/70">{p.availability || '—'}</td>
+                        <td className="p-3 text-cocoa/70">{p.collection_type}</td>
+                        <td className="p-3"><button onClick={() => onTogglePublish(p)} className={cx('px-2 py-1 rounded-full text-[9px] font-bold tracking-[0.2em] uppercase', p.published ? 'bg-gold/90 text-ivory' : 'bg-cocoa/20 text-cocoa')}>{p.published ? 'Live' : 'Draft'}</button></td>
+                        <td className="p-3"><div className="flex gap-1.5"><button title="Edit" onClick={() => { setEditing(p); setView('edit'); }} className="p-1.5 rounded-full hover:bg-cream"><IconEdit/></button><button title={p.collection_type === 'unlisted' ? 'Relist' : 'Unlist'} onClick={() => onToggleUnlist(p)} className="p-1.5 rounded-full hover:bg-cream"><IconEye/></button><button title="Delete" onClick={() => onDelete(p)} className="p-1.5 rounded-full hover:bg-cream text-red-700"><IconTrash/></button></div></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+        </>)}
+        {(view === 'new' || view === 'edit') && (<ProductForm initial={editing} onCancel={() => { setEditing(null); setView('list'); }} onSaved={() => { setEditing(null); setView('list'); reload(); }}/>)}
+      </main>
+    </div>
+  );
+}
+
+function ProductForm({ initial, onCancel, onSaved }) {
+  const isEdit = !!initial;
+  const [form, setForm] = useState({
+    name: initial?.name || '', sku: initial?.sku || '', category: initial?.category || CATEGORIES[0], subcategory: initial?.subcategory || '',
+    price: initial?.price ?? '', sale_price: initial?.sale_price ?? '', availability: initial?.availability || 'in_stock', stock: initial?.stock ?? '',
+    description: initial?.description || '', material: initial?.material || '', care: initial?.care || '',
+    collection_type: initial?.collection_type || 'regular', published: initial?.published !== false,
+  });
+  const [images, setImages] = useState(initial?.images || []);
+  const [errors, setErrors] = useState({});
+  const [busy, setBusy] = useState(false);
+  const [serverError, setServerError] = useState('');
+  const upd = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const validate = () => {
+    const e = {};
+    if (!form.name.trim()) e.name = 'Name is required';
+    if (!form.sku.trim()) e.sku = 'SKU / Model number is required';
+    if (!form.price || Number(form.price) <= 0) e.price = 'Price must be greater than 0';
+    if (form.sale_price && Number(form.sale_price) >= Number(form.price)) e.sale_price = 'Sale price must be less than regular price';
+    if (form.availability === 'in_stock' && form.stock !== '' && Number(form.stock) < 0) e.stock = 'Stock cannot be negative';
+    setErrors(e); return Object.keys(e).length === 0;
+  };
+
+  const onFile = async (files) => {
+    const list = Array.from(files || []);
+    for (const f of list) {
+      if (!f.type.startsWith('image/')) continue;
+      const dataUrl = await new Promise(res => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(f); });
+      setImages(prev => [...prev, { preview: dataUrl, name: f.name, file: f }]);
+    }
+  };
+  const removeImg = (i) => setImages(prev => prev.filter((_, idx) => idx !== i));
+  const moveImg = (i, dir) => {
+    setImages(prev => {
+      const next = [...prev]; const j = i + dir;
+      if (j < 0 || j >= next.length) return prev;
+      [next[i], next[j]] = [next[j], next[i]]; return next;
+    });
+  };
+
+  const submit = async (e) => {
+    e.preventDefault();
+    setServerError('');
+    if (!validate()) return;
+    setBusy(true);
+    try {
+      const payload = {
+        ...form,
+        price: Number(form.price),
+        sale_price: form.sale_price === '' ? null : Number(form.sale_price),
+        stock: form.stock === '' ? null : Number(form.stock),
+        images: images.map((im, idx) => ({ url: im.preview || im.url, alt_text: form.name, display_order: idx })),
+      };
+      if (isEdit) await AdminAPI.call('admin-products-update', { id: initial.id, patch: payload });
+      else await AdminAPI.call('admin-products-create', payload);
+      onSaved();
+    } catch (e2) { setServerError(e2.message || 'Save failed'); }
+    finally { setBusy(false); }
+  };
+
+  return (
+    <form onSubmit={submit} className="fade-up">
+      <div className="flex items-center justify-between gap-3 mb-6">
+        <div><h1 className="serif text-3xl">{isEdit ? 'Edit Product' : 'Add Product'}</h1><p className="text-xs text-cocoa/65 mt-1">{isEdit ? `Editing ${initial.name}` : 'Create a new catalogue item'}</p></div>
+        <div className="flex gap-2"><Btn variant="outline" onClick={onCancel} type="button">Cancel</Btn><Btn variant="primary" type="submit" disabled={busy}>{busy ? 'Saving…' : (isEdit ? 'Save Changes' : 'Create Product')}</Btn></div>
+      </div>
+      {serverError && <div className="rounded-2xl border border-red-300 bg-red-50 p-4 text-sm text-red-800 mb-5">{serverError}</div>}
+      {!AdminAPI.isConfigured() && (<div className="rounded-2xl border border-gold/50 bg-gold/5 p-4 text-xs text-cocoa/75 mb-5">Submission will fail until Supabase is configured and the admin Edge Functions are deployed.</div>)}
+      <div className="grid lg:grid-cols-[1fr_360px] gap-6">
+        <div className="space-y-6">
+          <section className="rounded-3xl border border-beige bg-ivory p-6 space-y-4">
+            <p className="serif text-xl">Basics</p>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <Field label="Product name" required error={errors.name}><input className={inputCls} value={form.name} onChange={e => upd('name', e.target.value)}/></Field>
+              <Field label="SKU / Model number" required error={errors.sku}><input className={inputCls} value={form.sku} onChange={e => upd('sku', e.target.value)}/></Field>
+              <Field label="Category" required><select className={inputCls} value={form.category} onChange={e => upd('category', e.target.value)}>{CATEGORIES.map(c => <option key={c}>{c}</option>)}</select></Field>
+              <Field label="Subcategory"><input className={inputCls} value={form.subcategory} onChange={e => upd('subcategory', e.target.value)}/></Field>
+            </div>
+          </section>
+          <section className="rounded-3xl border border-beige bg-ivory p-6 space-y-4">
+            <p className="serif text-xl">Pricing & availability</p>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <Field label="Regular price (₹)" required error={errors.price}><input className={inputCls} type="number" min="0" step="0.01" value={form.price} onChange={e => upd('price', e.target.value)}/></Field>
+              <Field label="Sale price (₹) — optional" error={errors.sale_price}><input className={inputCls} type="number" min="0" step="0.01" value={form.sale_price ?? ''} onChange={e => upd('sale_price', e.target.value)}/></Field>
+              <Field label="Availability"><select className={inputCls} value={form.availability} onChange={e => upd('availability', e.target.value)}>{AVAILABILITY.map(a => <option key={a.id} value={a.id}>{a.label}</option>)}</select></Field>
+              <Field label="Stock quantity — optional" error={errors.stock}><input className={inputCls} type="number" min="0" value={form.stock ?? ''} onChange={e => upd('stock', e.target.value)}/></Field>
+            </div>
+          </section>
+          <section className="rounded-3xl border border-beige bg-ivory p-6 space-y-4">
+            <p className="serif text-xl">Description & details</p>
+            <Field label="Description"><textarea className={inputCls} rows={4} value={form.description} onChange={e => upd('description', e.target.value)}/></Field>
+            <div className="grid sm:grid-cols-2 gap-4"><Field label="Material"><input className={inputCls} value={form.material} onChange={e => upd('material', e.target.value)}/></Field><Field label="Care & precautions"><input className={inputCls} value={form.care} onChange={e => upd('care', e.target.value)}/></Field></div>
+          </section>
+          <section className="rounded-3xl border border-beige bg-ivory p-6">
+            <p className="serif text-xl">Images</p>
+            <p className="text-xs text-cocoa/60 mt-1">Upload multiple images. Reorder with the arrows. The first image is the primary.</p>
+            <div className="mt-4"><input type="file" accept="image/*" multiple onChange={e => onFile(e.target.files)} className="block w-full text-xs file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-semibold file:tracking-[0.2em] file:uppercase file:bg-cocoa file:text-ivory hover:file:bg-gold file:cursor-pointer"/></div>
+            {images.length > 0 && (<ul className="mt-4 grid grid-cols-3 sm:grid-cols-4 gap-3">{images.map((im, i) => (<li key={i} className="relative group rounded-xl overflow-hidden border border-beige bg-white aspect-[4/5]"><img src={im.preview || im.url} alt="" className="w-full h-full object-cover"/><div className="absolute inset-x-0 bottom-0 p-1.5 flex items-center justify-center gap-1 bg-ivory/90 opacity-0 group-hover:opacity-100 transition-opacity"><button type="button" onClick={() => moveImg(i, -1)} className="p-1 rounded hover:bg-cream" aria-label="Move up"><IconUp className="w-3.5 h-3.5"/></button><button type="button" onClick={() => moveImg(i, 1)} className="p-1 rounded hover:bg-cream" aria-label="Move down"><IconDown className="w-3.5 h-3.5"/></button><button type="button" onClick={() => removeImg(i)} className="p-1 rounded hover:bg-cream text-red-700" aria-label="Remove"><IconClose className="w-3.5 h-3.5"/></button></div>{i === 0 && <span className="absolute top-1.5 left-1.5 bg-gold text-ivory text-[8px] font-bold tracking-[0.2em] uppercase px-2 py-0.5 rounded-full">Primary</span>}</li>))}</ul>)}
+          </section>
+        </div>
+        <aside className="space-y-6 lg:sticky lg:top-24 h-fit">
+          <section className="rounded-3xl border border-beige bg-ivory p-6">
+            <p className="serif text-xl">Collection</p>
+            <p className="text-xs text-cocoa/60 mt-1">Determines where this product appears on the homepage.</p>
+            <div className="mt-4 space-y-2">{COLLECTIONS.map(c => (<label key={c.id} className="flex items-center gap-2.5 text-sm cursor-pointer"><input type="radio" name="coll" className="accent-[#A68A5B]" checked={form.collection_type === c.id} onChange={() => upd('collection_type', c.id)}/>{c.label}</label>))}</div>
+          </section>
+          <section className="rounded-3xl border border-beige bg-ivory p-6">
+            <p className="serif text-xl">Publication</p>
+            <label className="flex items-center gap-2.5 mt-3 text-sm cursor-pointer"><input type="checkbox" className="accent-[#A68A5B]" checked={form.published} onChange={e => upd('published', e.target.checked)}/>Published — visible on public site</label>
+            <p className="text-[10px] text-cocoa/60 mt-2">Unpublished products never appear in listings, search or category pages.</p>
+          </section>
+        </aside>
+      </div>
+    </form>
+  );
+}
+
+class ErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { err: null }; }
+  static getDerivedStateFromError(err) { return { err }; }
+  render() {
+    if (this.state.err) return (<div className="min-h-screen flex items-center justify-center px-4 text-center"><div><IconSparkle className="w-6 h-6 text-gold mx-auto"/><h1 className="serif text-3xl mt-4">Admin error.</h1><p className="text-sm text-cocoa/60 mt-2">Please refresh and try again.</p></div></div>);
+    return this.props.children;
+  }
+}
+function Shell() { const { authed } = useAdminAuth(); return authed ? <Dashboard/> : <LoginScreen/>; }
+function AdminRoot() { return (<ErrorBoundary><AuthProvider><Shell/></AuthProvider></ErrorBoundary>); }
+ReactDOM.createRoot(document.getElementById('admin-root')).render(<AdminRoot/>);
+</script>
+
+<script>
+(function () {
+  var REACT = ['https://unpkg.com/react@18.3.1/umd/react.production.min.js','https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js','https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js'];
+  var REACT_DOM = ['https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js','https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js','https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js'];
+  var BABEL = ['https://unpkg.com/@babel/standalone@7.24.7/babel.min.js','https://cdn.jsdelivr.net/npm/@babel/standalone@7.24.7/babel.min.js','https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js'];
+  var TAILWIND = ['https://cdn.tailwindcss.com/3.4.16'];
+  function loadScript(urls, onDone) {
+    var i = 0;
+    (function next() {
+      if (i >= urls.length) return onDone(false);
+      var s = document.createElement('script');
+      s.src = urls[i++]; s.onload = function () { onDone(true); }; s.onerror = next;
+      document.head.appendChild(s);
+    })();
+  }
+  loadScript(TAILWIND, function (okTw) {
+    if (okTw && window.tailwind) { tailwind.config = { theme: { extend: { colors: { cream: '#F6EFE5', ivory: '#FFFDF9', cocoa: '#4A3B2A', gold: '#A68A5B', beige: '#DCCBB4' }, fontFamily: { serif: ['"Cormorant Garamond"', 'serif'], sans: ['Manrope', 'sans-serif'] } } } }; }
+    loadScript(REACT, function (okR) {
+      if (!okR) return;
+      loadScript(REACT_DOM, function (okD) {
+        if (!okD) return;
+        loadScript(BABEL, function (okB) {
+          if (!okB) return;
+          try {
+            var src = document.getElementById('reviora-admin').textContent;
+            var compiled = Babel.transform(src, { presets: ['react'] }).code;
+            var runner = document.createElement('script');
+            runner.text = compiled; document.body.appendChild(runner);
+            var boot = document.getElementById('admin-boot'); if (boot) boot.remove();
+          } catch (e) { console.error(e); }
+        });
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>
