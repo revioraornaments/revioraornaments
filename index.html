@@ -168,17 +168,17 @@ const DEMO_PRODUCTS = [
 function normalizeProduct(row) {
   if (!row) return null;
   const images = Array.isArray(row.images) ? row.images
-    : Array.isArray(row.product_images) ? row.product_images.sort((a,b)=>a.display_order-b.display_order).map(i=>i.url) : [''];
+  : Array.isArray(row.product_images) ? row.product_images.sort((a,b)=>a.sort_order-b.sort_order).map(i=>i.image_path): [''];
   return {
-    id: row.id, sku: row.sku || row.model_number || '', name: row.name || '',
+    id: row.id, sku: row.model_no || row.sku || '', name: row.name || '',
     slug: row.slug || (row.name || '').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''),
     category: row.category || '', subcategory: row.subcategory || '',
     price: Number(row.price) || 0,
     sale_price: row.sale_price != null && Number(row.sale_price) < Number(row.price) ? Number(row.sale_price) : null,
     currency: row.currency || 'INR', images, art: row.art || 'charm',
     description: row.description || '', material: row.material || '',
-    care: row.care || row.care_instructions || '',
-    stock: row.stock != null ? Number(row.stock) : null,
+    care: row.care_instructions || row.care || '',
+    stock: row.stock_quantity != null ? Number(row.stock_quantity) : (row.stock != null ? Number(row.stock) : null),
     availability: row.availability || (row.stock > 0 ? 'in_stock' : 'out_of_stock'),
     published: row.published !== false,
     collection_type: row.collection_type || 'regular',
@@ -201,7 +201,7 @@ const ProductService = {
   async getProducts() {
     if (SupabaseREST.isConfigured()) {
       try {
-        const rows = await SupabaseREST.select('products', 'select=*,product_images(url,alt_text,display_order)&published=eq.true&order=created_at.desc');
+        const rows = await SupabaseREST.select('products', 'select=*,product_images(image_path,alt_text,sort_order)&published=eq.true&order=created_at.desc');
         return rows.map(normalizeProduct).filter(p => p && p.collection_type !== 'unlisted');
       } catch (e) { console.warn('Supabase read failed, using demo data:', e.message); }
     }
