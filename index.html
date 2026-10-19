@@ -18,8 +18,10 @@
 <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 <style>
+  html,body{overflow-x:hidden;max-width:100vw}
   html{scroll-behavior:smooth}
   body{background:#F6EFE5;color:#4A3B2A;font-family:Manrope,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  #root{overflow-x:hidden;max-width:100vw}
   .serif{font-family:'Cormorant Garamond',Georgia,serif}
   ::selection{background:rgba(166,138,91,.25)}
   :focus-visible{outline:2px solid #A68A5B;outline-offset:2px;border-radius:4px}
@@ -56,6 +58,18 @@
   .prose h2{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:1.7rem;color:#4A3B2A;margin:2.25rem 0 .75rem}
   .prose strong{color:#4A3B2A}
   .prose a{color:#A68A5B;text-decoration:underline;text-underline-offset:4px}
+  /* Desktop row: strictly 4 visible, rest hidden behind arrows */
+  .row-desktop-wrap{position:relative}
+  .row-desktop-track{display:none}
+  @media (min-width:768px){
+    .row-desktop-track{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;gap:1.5rem}
+    .row-desktop-track > *{flex:0 0 calc((100% - 3*1.5rem)/4);scroll-snap-align:start}
+  }
+  /* Mobile row: horizontal swipe, cards ~68% */
+  .row-mobile-track{display:flex;gap:1rem;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;-webkit-overflow-scrolling:touch}
+  .row-mobile-track > *{flex:0 0 68%;scroll-snap-align:start}
+  @media (min-width:640px){.row-mobile-track > *{flex:0 0 45%}}
+  @media (min-width:768px){.row-mobile-track{display:none}}
 </style>
 </head>
 <body>
@@ -69,73 +83,46 @@
   </div>
 </div>
 
-<!-- Supabase JS SDK (for Google auth + session tokens) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 
-<!-- ==================== PUBLIC SITE APP SOURCE ==================== -->
 <script type="text/reviora-app" id="reviora-app">
 const { useState, useEffect, useMemo, useRef, useContext, createContext } = React;
 
-/* ============================================================
-   CONFIG — fill these three placeholders before going live
-   ============================================================ */
 const CONFIG = {
   SUPABASE_URL: 'https://hdehdkofypgjiaakbzoz.supabase.co',
-  /* REPLACE: Supabase Dashboard → Project Settings → API → "Publishable key" (sb_publishable_...) */
   SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_4dviwRWhXlVF9-6X7LR57A_SJHy3NNZ',
   INSTAGRAM_USERNAME: 'revioraornaments',
-  WHATSAPP_NUMBER: '',          // e.g. '919999999999' — leave blank to disable WhatsApp DM
+  WHATSAPP_NUMBER: '',
   PAYMENT_CONFIG: { enabled: false, provider: '', publicKey: '' },
   COOKIE_POLICY_VERSION: '1.0',
 };
 const EDGE_FUNCTIONS_BASE = CONFIG.SUPABASE_URL.replace(/\/$/, '') + '/functions/v1';
-
 const INSTAGRAM_PROFILE_URL = `https://www.instagram.com/${CONFIG.INSTAGRAM_USERNAME}/`;
 const INSTAGRAM_DM_URL      = `https://ig.me/m/${CONFIG.INSTAGRAM_USERNAME}`;
 const SITE_NAME = 'Reviora Ornaments';
 const DEFAULT_TITLE = 'Reviora Ornaments — Small details. Big style.';
 const DEFAULT_DESCRIPTION = 'Minimal jewellery & ornaments for women. Order via Instagram DM @revioraornaments.';
 const CURRENCY = '₹';
-
 const formatPrice = (n) => CURRENCY + new Intl.NumberFormat('en-IN').format(Math.round(n * 100) / 100);
 const cx = (...a) => a.filter(Boolean).join(' ');
 
-const Analytics = {
-  _allowed: false,
-  setAllowed(v) { this._allowed = !!v; },
-  track(event, payload = {}) {
-    if (!this._allowed) return;
-    if (window.__REVIORA_DEBUG__) console.info('[analytics]', event, payload);
-  },
-};
+const Analytics = { _allowed: false, setAllowed(v) { this._allowed = !!v; }, track(e, p = {}) { if (!this._allowed) return; if (window.__REVIORA_DEBUG__) console.info('[analytics]', e, p); } };
 
-/* ============================================================
-   SUPABASE REST (public reads)
-   ============================================================ */
 const SupabaseREST = {
   isConfigured() {
     return CONFIG.SUPABASE_URL && !CONFIG.SUPABASE_URL.includes('YOUR-PROJECT') &&
-           CONFIG.SUPABASE_PUBLISHABLE_KEY &&
-           CONFIG.SUPABASE_PUBLISHABLE_KEY.startsWith('sb_publishable_') &&
+           CONFIG.SUPABASE_PUBLISHABLE_KEY && CONFIG.SUPABASE_PUBLISHABLE_KEY.startsWith('sb_publishable_') &&
            !CONFIG.SUPABASE_PUBLISHABLE_KEY.includes('YOUR_KEY');
   },
   async select(table, query = '') {
     if (!this.isConfigured()) throw new Error('Supabase not configured');
     const url = `${CONFIG.SUPABASE_URL}/rest/v1/${table}${query ? '?' + query : ''}`;
-    const res = await fetch(url, {
-      headers: {
-        apikey: CONFIG.SUPABASE_PUBLISHABLE_KEY,
-        Authorization: `Bearer ${CONFIG.SUPABASE_PUBLISHABLE_KEY}`,
-      },
-    });
+    const res = await fetch(url, { headers: { apikey: CONFIG.SUPABASE_PUBLISHABLE_KEY, Authorization: `Bearer ${CONFIG.SUPABASE_PUBLISHABLE_KEY}` } });
     if (!res.ok) throw new Error(`Supabase ${table} read failed (${res.status})`);
     return res.json();
   },
 };
 
-/* ============================================================
-   SUPABASE CLIENT (auth only — publishable key is safe in browser)
-   ============================================================ */
 let _supabase = null;
 function getSupabaseClient() {
   if (_supabase) return _supabase;
@@ -145,19 +132,12 @@ function getSupabaseClient() {
   return _supabase;
 }
 
-/* ============================================================
-   EDGE FUNCTIONS CLIENT
-   ============================================================ */
 const EdgeAPI = {
   isConfigured() { return SupabaseREST.isConfigured(); },
   async call(name, body = {}, opts = {}) {
     if (!this.isConfigured()) throw new Error('Supabase not configured');
     const url = `${EDGE_FUNCTIONS_BASE}/${name}`;
-    const headers = {
-      'Content-Type': 'application/json',
-      apikey: CONFIG.SUPABASE_PUBLISHABLE_KEY,
-      Authorization: `Bearer ${opts.userToken || CONFIG.SUPABASE_PUBLISHABLE_KEY}`,
-    };
+    const headers = { 'Content-Type': 'application/json', apikey: CONFIG.SUPABASE_PUBLISHABLE_KEY, Authorization: `Bearer ${opts.userToken || CONFIG.SUPABASE_PUBLISHABLE_KEY}` };
     const res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.error || `Edge function ${name} failed (${res.status})`);
@@ -165,9 +145,6 @@ const EdgeAPI = {
   },
 };
 
-/* ============================================================
-   DEMO PRODUCT DATA — real products come from Supabase when configured
-   ============================================================ */
 const DEMO_PRODUCTS = [
   { id:'rv001', sku:'RV001', name:'Mermaid Pearl Pendant', slug:'mermaid-pearl-pendant', category:'Necklaces', subcategory:'Pendant', price:299, sale_price:null, currency:'INR', images:[''], art:'necklace', description:'A sculpted mermaid-tail pendant set inside a sparkling hoop, finished with a single soft pearl.', material:'Gold-tone alloy, pearl finish, cubic zirconia', care:'Keep dry. Wipe gently after use.', stock:6, availability:'in_stock', published:true, collection_type:'featured', createdAt:'2025-11-02' },
   { id:'rv002', sku:'RV002', name:'Lavender Heart Pendant', slug:'lavender-heart-pendant', category:'Necklaces', subcategory:'Pendant', price:249, sale_price:199, currency:'INR', images:[''], art:'necklace', description:'A soft lilac heart caught in delicate prongs.', material:'Gold-tone alloy, lavender cubic zirconia', care:'Keep away from perfume and water.', stock:8, availability:'in_stock', published:true, collection_type:'new_arrival', createdAt:'2026-01-08' },
@@ -180,7 +157,7 @@ const DEMO_PRODUCTS = [
   { id:'rv009', sku:'RV009', name:'Velvet Onyx Ring', slug:'velvet-onyx-ring', category:'Rings', subcategory:'Gemstone', price:299, sale_price:null, currency:'INR', images:[''], art:'ring', description:'A slim gold band with polished black onyx.', material:'Gold-tone alloy, onyx', care:'Avoid scratches.', stock:4, availability:'in_stock', published:true, collection_type:'featured', createdAt:'2026-01-15' },
   { id:'rv010', sku:'RV010', name:'Angel Wing Pendant', slug:'angel-wing-pendant', category:'Necklaces', subcategory:'Pendant', price:229, sale_price:null, currency:'INR', images:[''], art:'necklace', description:'A tiny golden wing dusted with crystals.', material:'Gold-tone alloy, cubic zirconia', care:'Keep dry.', stock:5, availability:'in_stock', published:true, collection_type:'regular', createdAt:'2025-12-10' },
   { id:'rv011', sku:'RV011', name:'Starlight Anklet', slug:'starlight-anklet', category:'Other Accessories', subcategory:'Anklet', price:189, sale_price:null, currency:'INR', images:[''], art:'anklet', description:'A delicate chain with scattered star charms.', material:'Gold-tone alloy', care:'Remove before swimming.', stock:11, availability:'in_stock', published:true, collection_type:'new_arrival', createdAt:'2026-01-18' },
-  { id:'rv012', sku:'RV012', name:'Vintage Pearl Choker', slug:'vintage-pearl-choker', category:'Necklaces', subcategory:'Pearl', price:399, sale_price:null, currency:'INR', images:[''], art:'necklace', description:'A classic strand of lustrous pearls.', material:'Shell pearls', care:'Store flat.', stock:0, availability:'out_of_stock', published:true, collection_type:'featured', createdAt:'2025-12-05' },
+  { id:'rv012', sku:'RV012', name:'Vintage Pearl Choker', slug:'vintage-pearl-choker', category:'Necklaces', subcategory:'Pearl', price:399, sale_price:null, currency:'INR', images:[''], art:'necklace', description:'A classic strand of lustrous pearls.', material:'Shell pearls', care:'Store flat.', stock:3, availability:'in_stock', published:true, collection_type:'featured', createdAt:'2025-12-05' },
   { id:'rv013', sku:'RV013', name:'Vintage Locket', slug:'vintage-locket', category:'Necklaces', subcategory:'Locket', price:349, sale_price:null, currency:'INR', images:[''], art:'necklace', description:'An engraved gold locket.', material:'Gold-tone alloy', care:'Polish gently.', stock:3, availability:'in_stock', published:true, collection_type:'new_arrival', createdAt:'2026-01-20' },
   { id:'rv014', sku:'RV014', name:'Serene Pearl Studs', slug:'serene-pearl-studs', category:'Earrings', subcategory:'Studs', price:159, sale_price:null, currency:'INR', images:[''], art:'earrings', description:'Round pearls on gold posts.', material:'Gold-tone alloy, pearl', care:'Keep dry.', stock:15, availability:'in_stock', published:true, collection_type:'new_arrival', createdAt:'2026-01-21' },
   { id:'rv015', sku:'RV015', name:'Ember Stack Ring', slug:'ember-stack-ring', category:'Rings', subcategory:'Stack', price:189, sale_price:null, currency:'INR', images:[''], art:'ring', description:'A thin stackable band.', material:'Gold-tone alloy', care:'Wipe clean.', stock:10, availability:'in_stock', published:true, collection_type:'new_arrival', createdAt:'2026-01-22' },
@@ -191,22 +168,15 @@ const DEMO_PRODUCTS = [
 function normalizeProduct(row) {
   if (!row) return null;
   const images = Array.isArray(row.images) ? row.images
-    : Array.isArray(row.product_images) ? row.product_images.sort((a,b)=>a.display_order-b.display_order).map(i=>i.url)
-    : [''];
+    : Array.isArray(row.product_images) ? row.product_images.sort((a,b)=>a.display_order-b.display_order).map(i=>i.url) : [''];
   return {
-    id: row.id,
-    sku: row.sku || row.model_number || '',
-    name: row.name || '',
+    id: row.id, sku: row.sku || row.model_number || '', name: row.name || '',
     slug: row.slug || (row.name || '').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''),
-    category: row.category || '',
-    subcategory: row.subcategory || '',
+    category: row.category || '', subcategory: row.subcategory || '',
     price: Number(row.price) || 0,
     sale_price: row.sale_price != null && Number(row.sale_price) < Number(row.price) ? Number(row.sale_price) : null,
-    currency: row.currency || 'INR',
-    images,
-    art: row.art || 'charm',
-    description: row.description || '',
-    material: row.material || '',
+    currency: row.currency || 'INR', images, art: row.art || 'charm',
+    description: row.description || '', material: row.material || '',
     care: row.care || row.care_instructions || '',
     stock: row.stock != null ? Number(row.stock) : null,
     availability: row.availability || (row.stock > 0 ? 'in_stock' : 'out_of_stock'),
@@ -215,7 +185,6 @@ function normalizeProduct(row) {
     createdAt: row.created_at || row.createdAt || '',
   };
 }
-
 const effectivePrice = (p) => (p.sale_price != null && p.sale_price < p.price) ? p.sale_price : p.price;
 const hasSale = (p) => p.sale_price != null && p.sale_price < p.price;
 const isAvailable = (p) => {
@@ -226,11 +195,7 @@ const isAvailable = (p) => {
   return p.stock == null || p.stock > 0;
 };
 const maxQtyFor = (p) => (p.stock != null && p.stock > 0) ? p.stock : 99;
-const matchesQuery = (p, q) => {
-  const s = (q || '').trim().toLowerCase();
-  if (!s) return true;
-  return [p.name, p.sku, p.category, p.subcategory, p.description].filter(Boolean).join(' ').toLowerCase().includes(s);
-};
+const matchesQuery = (p, q) => { const s = (q||'').trim().toLowerCase(); if (!s) return true; return [p.name,p.sku,p.category,p.subcategory,p.description].filter(Boolean).join(' ').toLowerCase().includes(s); };
 
 const ProductService = {
   async getProducts() {
@@ -238,25 +203,17 @@ const ProductService = {
       try {
         const rows = await SupabaseREST.select('products', 'select=*,product_images(url,alt_text,display_order)&published=eq.true&order=created_at.desc');
         return rows.map(normalizeProduct).filter(p => p && p.collection_type !== 'unlisted');
-      } catch (e) {
-        console.warn('Supabase read failed, using demo data:', e.message);
-      }
+      } catch (e) { console.warn('Supabase read failed, using demo data:', e.message); }
     }
     return DEMO_PRODUCTS.map(normalizeProduct).filter(p => p.collection_type !== 'unlisted');
   },
-  async getProductBySlug(slug) {
-    const all = await this.getProducts();
-    return all.find(p => p.slug === slug) || null;
-  },
+  async getProductBySlug(slug) { const all = await this.getProducts(); return all.find(p => p.slug === slug) || null; },
 };
 
 function useAsync(fn, deps) {
   const [state, setState] = useState({ loading: true, data: null, error: null });
-  useEffect(() => {
-    let alive = true;
-    setState({ loading: true, data: null, error: null });
-    Promise.resolve(fn()).then(data => alive && setState({ loading: false, data, error: null }))
-      .catch(err => alive && setState({ loading: false, data: null, error: err }));
+  useEffect(() => { let alive = true; setState({ loading: true, data: null, error: null });
+    Promise.resolve(fn()).then(data => alive && setState({ loading: false, data, error: null })).catch(err => alive && setState({ loading: false, data: null, error: err }));
     return () => { alive = false; };
   }, deps);
   return state;
@@ -270,29 +227,17 @@ function useSEO({ title, description } = {}) {
   }, [title, description]);
 }
 
-/* ---------------- ROUTER ---------------- */
 const RouterContext = createContext({ path: '/', query: new URLSearchParams() });
-function parseHash() {
-  const raw = window.location.hash.replace(/^#/, '') || '/';
-  const [path, qs] = raw.split('?');
-  return { path: path || '/', query: new URLSearchParams(qs || '') };
-}
+function parseHash() { const raw = window.location.hash.replace(/^#/, '') || '/'; const [path, qs] = raw.split('?'); return { path: path || '/', query: new URLSearchParams(qs || '') }; }
 function navigate(to) { window.location.hash = to; }
-function Link({ to, children, className, onClick, ariaLabel, ...rest }) {
-  return <a href={'#' + to} className={className} onClick={onClick} aria-label={ariaLabel} {...rest}>{children}</a>;
-}
+function Link({ to, children, className, onClick, ariaLabel, ...rest }) { return <a href={'#' + to} className={className} onClick={onClick} aria-label={ariaLabel} {...rest}>{children}</a>; }
 function RouterProvider({ children }) {
   const [route, setRoute] = useState(parseHash);
-  useEffect(() => {
-    const onChange = () => { setRoute(parseHash()); window.scrollTo(0, 0); };
-    window.addEventListener('hashchange', onChange);
-    return () => window.removeEventListener('hashchange', onChange);
-  }, []);
+  useEffect(() => { const onChange = () => { setRoute(parseHash()); window.scrollTo(0, 0); }; window.addEventListener('hashchange', onChange); return () => window.removeEventListener('hashchange', onChange); }, []);
   return <RouterContext.Provider value={route}>{children}</RouterContext.Provider>;
 }
 const useRoute = () => useContext(RouterContext);
 
-/* ---------------- CATALOG ---------------- */
 const CatalogContext = createContext({ products: [], loading: true, error: null });
 const useCatalog = () => useContext(CatalogContext);
 function CatalogProvider({ children }) {
@@ -300,32 +245,17 @@ function CatalogProvider({ children }) {
   return <CatalogContext.Provider value={{ products: data || [], loading, error }}>{children}</CatalogContext.Provider>;
 }
 
-/* ---------------- CONSENT ---------------- */
-const ConsentContext = createContext({
-  consent: { necessary: true, analytics: false, marketing: false, version: CONFIG.COOKIE_POLICY_VERSION, decided: false },
-  save: () => {},
-  openPreferences: () => {},
-});
+const ConsentContext = createContext({ consent: { necessary: true, analytics: false, marketing: false, version: CONFIG.COOKIE_POLICY_VERSION, decided: false }, save: () => {}, openPreferences: () => {} });
 const useConsent = () => useContext(ConsentContext);
 function ConsentProvider({ children }) {
   const [consent, setConsent] = useState(() => {
-    try {
-      const raw = JSON.parse(localStorage.getItem('reviora_consent') || 'null');
-      if (raw && raw.version === CONFIG.COOKIE_POLICY_VERSION) return raw;
-    } catch (e) {}
+    try { const raw = JSON.parse(localStorage.getItem('reviora_consent') || 'null'); if (raw && raw.version === CONFIG.COOKIE_POLICY_VERSION) return raw; } catch (e) {}
     return { necessary: true, analytics: false, marketing: false, version: CONFIG.COOKIE_POLICY_VERSION, decided: false };
   });
   const [bannerOpen, setBannerOpen] = useState(!consent.decided);
   const [prefsOpen, setPrefsOpen] = useState(false);
-  useEffect(() => {
-    try { localStorage.setItem('reviora_consent', JSON.stringify(consent)); } catch (e) {}
-    Analytics.setAllowed(consent.decided && consent.analytics);
-  }, [consent]);
-  const save = (next) => {
-    setConsent({ necessary: true, analytics: !!next.analytics, marketing: !!next.marketing, version: CONFIG.COOKIE_POLICY_VERSION, decided: true });
-    setBannerOpen(false);
-    setPrefsOpen(false);
-  };
+  useEffect(() => { try { localStorage.setItem('reviora_consent', JSON.stringify(consent)); } catch (e) {} Analytics.setAllowed(consent.decided && consent.analytics); }, [consent]);
+  const save = (next) => { setConsent({ necessary: true, analytics: !!next.analytics, marketing: !!next.marketing, version: CONFIG.COOKIE_POLICY_VERSION, decided: true }); setBannerOpen(false); setPrefsOpen(false); };
   const openPreferences = () => { setBannerOpen(false); setPrefsOpen(true); };
   return (
     <ConsentContext.Provider value={{ consent, save, openPreferences }}>
@@ -337,9 +267,7 @@ function ConsentProvider({ children }) {
               <IconSparkle className="w-5 h-5 text-gold shrink-0 mt-0.5"/>
               <div className="flex-1">
                 <p className="serif text-xl">We use cookies</p>
-                <p className="text-xs text-cocoa/70 mt-2 leading-relaxed">
-                  Necessary storage keeps your cart and preferences working. With your permission we may use analytics to understand shopping patterns and improve the experience. You can change your choice anytime from the footer. <Link to="/privacy" className="text-gold underline underline-offset-4">Learn more</Link>.
-                </p>
+                <p className="text-xs text-cocoa/70 mt-2 leading-relaxed">Necessary storage keeps your cart and preferences working. With your permission we may use analytics. <Link to="/privacy" className="text-gold underline underline-offset-4">Learn more</Link>.</p>
                 <div className="flex flex-wrap gap-2 mt-4">
                   <button onClick={() => save({ analytics: true, marketing: true })} className="px-4 py-2 rounded-full bg-cocoa text-ivory text-[10px] font-semibold tracking-[0.2em] uppercase hover:bg-gold transition-colors">Accept All</button>
                   <button onClick={() => save({ analytics: false, marketing: false })} className="px-4 py-2 rounded-full border border-cocoa/30 text-[10px] font-semibold tracking-[0.2em] uppercase hover:border-gold hover:text-gold transition-colors">Deny Optional</button>
@@ -351,26 +279,14 @@ function ConsentProvider({ children }) {
         </div>
       )}
       {prefsOpen && (
-        <div className="fixed inset-0 z-[95] flex items-end sm:items-center justify-center p-3" role="dialog" aria-modal="true" aria-label="Cookie preferences">
+        <div className="fixed inset-0 z-[95] flex items-end sm:items-center justify-center p-3" role="dialog" aria-modal="true">
           <div className="absolute inset-0 bg-cocoa/40 backdrop-blur-sm" onClick={() => setPrefsOpen(false)}></div>
           <div className="relative bg-ivory border border-beige rounded-2xl shadow-2xl w-full max-w-lg p-6 fade-up">
-            <div className="flex items-center justify-between">
-              <p className="serif text-2xl">Cookie Preferences</p>
-              <button onClick={() => setPrefsOpen(false)} className="p-2 rounded-full hover:bg-cream" aria-label="Close preferences"><IconClose/></button>
-            </div>
+            <div className="flex items-center justify-between"><p className="serif text-2xl">Cookie Preferences</p><button onClick={() => setPrefsOpen(false)} className="p-2 rounded-full hover:bg-cream" aria-label="Close"><IconClose/></button></div>
             <div className="mt-5 space-y-4">
-              <div className="rounded-xl border border-beige p-4">
-                <p className="text-sm font-semibold">Necessary storage</p>
-                <p className="text-xs text-cocoa/70 mt-1">Always on. Required for cart, security and basic functionality.</p>
-              </div>
-              <label className="rounded-xl border border-beige p-4 flex items-start gap-3 cursor-pointer">
-                <input type="checkbox" className="mt-1 accent-[#A68A5B]" checked={consent.analytics} onChange={e => setConsent(c => ({ ...c, analytics: e.target.checked }))}/>
-                <span><span className="text-sm font-semibold block">Analytics</span><span className="text-xs text-cocoa/70 block mt-1">Helps us understand product interest. Off until you allow.</span></span>
-              </label>
-              <label className="rounded-xl border border-beige p-4 flex items-start gap-3 cursor-pointer">
-                <input type="checkbox" className="mt-1 accent-[#A68A5B]" checked={consent.marketing} onChange={e => setConsent(c => ({ ...c, marketing: e.target.checked }))}/>
-                <span><span className="text-sm font-semibold block">Marketing</span><span className="text-xs text-cocoa/70 block mt-1">Optional. Off until you allow.</span></span>
-              </label>
+              <div className="rounded-xl border border-beige p-4"><p className="text-sm font-semibold">Necessary storage</p><p className="text-xs text-cocoa/70 mt-1">Always on. Required for cart, security and basic functionality.</p></div>
+              <label className="rounded-xl border border-beige p-4 flex items-start gap-3 cursor-pointer"><input type="checkbox" className="mt-1 accent-[#A68A5B]" checked={consent.analytics} onChange={e => setConsent(c => ({ ...c, analytics: e.target.checked }))}/><span><span className="text-sm font-semibold block">Analytics</span><span className="text-xs text-cocoa/70 block mt-1">Off until you allow.</span></span></label>
+              <label className="rounded-xl border border-beige p-4 flex items-start gap-3 cursor-pointer"><input type="checkbox" className="mt-1 accent-[#A68A5B]" checked={consent.marketing} onChange={e => setConsent(c => ({ ...c, marketing: e.target.checked }))}/><span><span className="text-sm font-semibold block">Marketing</span><span className="text-xs text-cocoa/70 block mt-1">Optional. Off until you allow.</span></span></label>
             </div>
             <div className="flex flex-wrap gap-2 mt-6">
               <button onClick={() => save({ analytics: consent.analytics, marketing: consent.marketing })} className="px-5 py-2.5 rounded-full bg-cocoa text-ivory text-[10px] font-semibold tracking-[0.2em] uppercase hover:bg-gold transition-colors">Save Preferences</button>
@@ -384,30 +300,20 @@ function ConsentProvider({ children }) {
   );
 }
 
-/* ---------------- TOAST ---------------- */
 const ToastContext = createContext({ notify: () => {} });
 const useToast = () => useContext(ToastContext);
 function ToastProvider({ children }) {
   const [toast, setToast] = useState(null);
   const timer = useRef(null);
-  const notify = (msg) => {
-    setToast(msg);
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => setToast(null), 4000);
-  };
+  const notify = (msg) => { setToast(msg); if (timer.current) clearTimeout(timer.current); timer.current = setTimeout(() => setToast(null), 4000); };
   return (
     <ToastContext.Provider value={{ notify }}>
       {children}
-      {toast && (
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[80] w-[calc(100%-2rem)] max-w-sm bg-cocoa text-ivory rounded-2xl px-5 py-4 shadow-xl fade-up text-sm leading-relaxed" role="status" aria-live="polite">
-          <span className="flex items-start gap-2.5"><IconSparkle className="w-4 h-4 text-gold shrink-0 mt-0.5"/><span>{toast}</span></span>
-        </div>
-      )}
+      {toast && (<div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[80] w-[calc(100%-2rem)] max-w-sm bg-cocoa text-ivory rounded-2xl px-5 py-4 shadow-xl fade-up text-sm leading-relaxed" role="status" aria-live="polite"><span className="flex items-start gap-2.5"><IconSparkle className="w-4 h-4 text-gold shrink-0 mt-0.5"/><span>{toast}</span></span></div>)}
     </ToastContext.Provider>
   );
 }
 
-/* ---------------- AUTH (Supabase Google) ---------------- */
 const AuthContext = createContext({ user: null, session: null, loading: true, signInWithGoogle: async () => {}, signOut: async () => {} });
 const useAuth = () => useContext(AuthContext);
 function AuthProvider({ children }) {
@@ -417,55 +323,28 @@ function AuthProvider({ children }) {
   useEffect(() => {
     const sb = getSupabaseClient();
     if (!sb) { setLoading(false); return; }
-    sb.auth.getSession().then(({ data }) => {
-      setSession(data?.session || null);
-      setUser(data?.session?.user || null);
-      setLoading(false);
-    });
-    const { data: sub } = sb.auth.onAuthStateChange((_event, s) => {
-      setSession(s || null);
-      setUser(s?.user || null);
-    });
+    sb.auth.getSession().then(({ data }) => { setSession(data?.session || null); setUser(data?.session?.user || null); setLoading(false); });
+    const { data: sub } = sb.auth.onAuthStateChange((_event, s) => { setSession(s || null); setUser(s?.user || null); });
     return () => { try { sub.subscription.unsubscribe(); } catch (e) {} };
   }, []);
   const signInWithGoogle = async () => {
     const sb = getSupabaseClient();
-    if (!sb) {
-      // Demo fallback so the flow can be walked through without config
-      const demo = { email: 'demo@example.com', name: 'Demo Customer' };
-      setUser(demo); setSession({ access_token: null, user: demo });
-      return;
-    }
-    const { error } = await sb.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: window.location.origin + window.location.pathname },
-    });
+    if (!sb) { const demo = { email: 'demo@example.com', name: 'Demo Customer' }; setUser(demo); setSession({ access_token: null, user: demo }); return; }
+    const { error } = await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + window.location.pathname } });
     if (error) throw error;
   };
-  const signOut = async () => {
-    const sb = getSupabaseClient();
-    if (sb) await sb.auth.signOut();
-    setUser(null); setSession(null);
-  };
+  const signOut = async () => { const sb = getSupabaseClient(); if (sb) await sb.auth.signOut(); setUser(null); setSession(null); };
   return <AuthContext.Provider value={{ user, session, loading, signInWithGoogle, signOut }}>{children}</AuthContext.Provider>;
 }
 
-/* ---------------- CART ---------------- */
 const CartContext = createContext(null);
 const useCart = () => useContext(CartContext);
 function CartProvider({ children }) {
   const [open, setOpen] = useState(false);
-  const [raw, setRaw] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('reviora_cart_v2') || '[]'); } catch (e) { return []; }
-  });
+  const [raw, setRaw] = useState(() => { try { return JSON.parse(localStorage.getItem('reviora_cart_v2') || '[]'); } catch (e) { return []; } });
   const { products } = useCatalog();
   useEffect(() => { try { localStorage.setItem('reviora_cart_v2', JSON.stringify(raw)); } catch (e) {} }, [raw]);
-  const items = useMemo(() => raw.map(r => {
-    const p = products.find(pp => pp.id === r.id);
-    if (!p) return null;
-    const qty = Math.max(1, Math.min(r.qty, maxQtyFor(p)));
-    return { ...p, qty, lineTotal: effectivePrice(p) * qty };
-  }).filter(Boolean), [raw, products]);
+  const items = useMemo(() => raw.map(r => { const p = products.find(pp => pp.id === r.id); if (!p) return null; const qty = Math.max(1, Math.min(r.qty, maxQtyFor(p))); return { ...p, qty, lineTotal: effectivePrice(p) * qty }; }).filter(Boolean), [raw, products]);
   const count = items.reduce((s, it) => s + it.qty, 0);
   const subtotal = items.reduce((s, it) => s + it.lineTotal, 0);
   const originalTotal = items.reduce((s, it) => s + it.price * it.qty, 0);
@@ -475,61 +354,29 @@ function CartProvider({ children }) {
   const addToCart = (product, qty = 1) => {
     if (!isAvailable(product)) return { ok: false, reason: 'unavailable' };
     const max = maxQtyFor(product);
-    setRaw(prev => {
-      const found = prev.find(i => i.id === product.id);
-      if (found) return prev.map(i => i.id === product.id ? { ...i, qty: Math.min(found.qty + qty, max) } : i);
-      return [...prev, { id: product.id, qty: Math.min(qty, max) }];
-    });
+    setRaw(prev => { const found = prev.find(i => i.id === product.id); if (found) return prev.map(i => i.id === product.id ? { ...i, qty: Math.min(found.qty + qty, max) } : i); return [...prev, { id: product.id, qty: Math.min(qty, max) }]; });
     return { ok: true };
   };
-  const updateQty = (id, qty) => {
-    const p = products.find(pp => pp.id === id);
-    if (!p) return;
-    const max = maxQtyFor(p);
-    setRaw(prev => prev.map(i => i.id === id ? { ...i, qty: Math.max(1, Math.min(qty, max)) } : i));
-  };
+  const updateQty = (id, qty) => { const p = products.find(pp => pp.id === id); if (!p) return; const max = maxQtyFor(p); setRaw(prev => prev.map(i => i.id === id ? { ...i, qty: Math.max(1, Math.min(qty, max)) } : i)); };
   const removeFromCart = (id) => setRaw(prev => prev.filter(i => i.id !== id));
   const clearCart = () => setRaw([]);
-  return (
-    <CartContext.Provider value={{ items, count, subtotal, discount, shipping, total, addToCart, updateQty, removeFromCart, clearCart, open, setOpen }}>
-      {children}
-      <CartDrawer/>
-    </CartContext.Provider>
-  );
+  return (<CartContext.Provider value={{ items, count, subtotal, discount, shipping, total, addToCart, updateQty, removeFromCart, clearCart, open, setOpen }}>{children}<CartDrawer/></CartContext.Provider>);
 }
 function CartDrawer() {
   const { items, count, subtotal, discount, shipping, total, removeFromCart, updateQty, clearCart, open, setOpen } = useCart();
-  useEffect(() => {
-    if (!open) return;
-    document.body.style.overflow = 'hidden';
-    const onKey = (e) => { if (e.key === 'Escape') setOpen(false); };
-    window.addEventListener('keydown', onKey);
-    return () => { document.body.style.overflow = ''; window.removeEventListener('keydown', onKey); };
-  }, [open, setOpen]);
+  useEffect(() => { if (!open) return; document.body.style.overflow = 'hidden'; const onKey = (e) => { if (e.key === 'Escape') setOpen(false); }; window.addEventListener('keydown', onKey); return () => { document.body.style.overflow = ''; window.removeEventListener('keydown', onKey); }; }, [open, setOpen]);
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-[70]" role="dialog" aria-modal="true" aria-label="Your cart">
       <div className="absolute inset-0 bg-cocoa/40 backdrop-blur-sm" onClick={() => setOpen(false)}></div>
       <div className="absolute right-0 top-0 h-full w-full max-w-md bg-ivory shadow-2xl flex flex-col fade-up">
-        <div className="flex items-center justify-between p-4 border-b border-beige/60">
-          <p className="serif text-2xl">Your Cart <span className="text-gold text-lg">({count})</span></p>
-          <button onClick={() => setOpen(false)} aria-label="Close cart" className="p-2 rounded-full hover:bg-cream"><IconClose/></button>
-        </div>
-        {items.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center text-center px-6 gap-3">
-            <IconSparkle className="w-6 h-6 text-gold"/>
-            <p className="serif text-2xl">Your cart is empty.</p>
-            <p className="text-sm text-cocoa/65">Add pieces you love — then check out.</p>
-            <Btn to="/shop" onClick={() => setOpen(false)}>Shop the Collection</Btn>
-          </div>
-        ) : (
+        <div className="flex items-center justify-between p-4 border-b border-beige/60"><p className="serif text-2xl">Your Cart <span className="text-gold text-lg">({count})</span></p><button onClick={() => setOpen(false)} aria-label="Close cart" className="p-2 rounded-full hover:bg-cream"><IconClose/></button></div>
+        {items.length === 0 ? (<div className="flex-1 flex flex-col items-center justify-center text-center px-6 gap-3"><IconSparkle className="w-6 h-6 text-gold"/><p className="serif text-2xl">Your cart is empty.</p><p className="text-sm text-cocoa/65">Add pieces you love — then check out.</p><Btn to="/shop" onClick={() => setOpen(false)}>Shop the Collection</Btn></div>) : (
           <>
             <div className="flex-1 overflow-y-auto px-4 py-2 divide-y divide-beige/50">
               {items.map(item => (
                 <div key={item.id} className="flex items-start gap-3 py-3.5">
-                  <Link to={`/product/${item.slug}`} onClick={() => setOpen(false)} className="block w-14 h-16 rounded-lg overflow-hidden border border-beige/70 shrink-0 bg-white">
-                    <ProductImage product={item}/>
-                  </Link>
+                  <Link to={`/product/${item.slug}`} onClick={() => setOpen(false)} className="block w-14 h-16 rounded-lg overflow-hidden border border-beige/70 shrink-0 bg-white"><ProductImage product={item}/></Link>
                   <div className="flex-1 min-w-0">
                     <Link to={`/product/${item.slug}`} onClick={() => setOpen(false)} className="serif text-lg block truncate hover:text-gold transition-colors">{item.name}</Link>
                     <p className="text-[10px] tracking-[0.18em] uppercase text-cocoa/50">{item.sku}</p>
@@ -540,7 +387,6 @@ function CartDrawer() {
                         <button className="px-2.5 py-1 hover:bg-cream" aria-label="Increase quantity" onClick={() => updateQty(item.id, item.qty + 1)}>+</button>
                       </div>
                       <span className="text-sm">{formatPrice(item.lineTotal)}</span>
-                      {hasSale(item) && <span className="text-[10px] text-gold">Save {formatPrice((item.price - effectivePrice(item)) * item.qty)}</span>}
                     </div>
                   </div>
                   <button onClick={() => removeFromCart(item.id)} aria-label={`Remove ${item.name}`} className="p-1.5 rounded-full text-cocoa/50 hover:text-cocoa hover:bg-cream"><IconClose className="w-4 h-4"/></button>
@@ -564,7 +410,6 @@ function CartDrawer() {
   );
 }
 
-/* ---------------- ICONS ---------------- */
 const IconSparkle = ({ className = 'w-4 h-4' }) => (<svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden="true"><path d="M12 0C12.9 6.9 17.1 11.1 24 12C17.1 12.9 12.9 17.1 12 24C11.1 17.1 6.9 12.9 0 12C6.9 11.1 11.1 6.9 12 0Z"/></svg>);
 const IconSearch = ({ className = 'w-5 h-5' }) => (<svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>);
 const IconCart = ({ className = 'w-5 h-5' }) => (<svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5.5 8h13l-1 11.2a2 2 0 0 1-2 1.8H8.5a2 2 0 0 1-2-1.8L5.5 8Z"/><path d="M9 10V6a3 3 0 0 1 6 0v4"/></svg>);
@@ -579,7 +424,6 @@ const IconHeart = ({ className = 'w-6 h-6' }) => (<svg viewBox="0 0 48 48" class
 const IconLeaf = ({ className = 'w-6 h-6' }) => (<svg viewBox="0 0 48 48" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M12 36C12 20 24 10 38 10c0 16-12 26-26 26Z"/><path d="M12 36c6-8 14-16 22-22"/></svg>);
 const IconGoogle = ({ className = 'w-5 h-5' }) => (<svg viewBox="0 0 48 48" className={className} aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.7 1.22 9.19 3.6l6.85-6.85C35.9 2.44 30.4 0 24 0 14.6 0 6.5 5.4 2.5 13.3l7.98 6.2C12.4 13.6 17.7 9.5 24 9.5Z"/><path fill="#4285F4" d="M46.1 24.6c0-1.6-.15-3.1-.42-4.6H24v9h12.5c-.55 2.9-2.2 5.4-4.65 7.05l7.3 5.65C43.4 37.9 46.1 31.8 46.1 24.6Z"/><path fill="#FBBC05" d="M10.48 28.5c-.5-1.5-.78-3.1-.78-4.5s.28-3 .78-4.5l-7.98-6.2C.9 16.1 0 19.95 0 24s.9 7.9 2.5 10.7l7.98-6.2Z"/><path fill="#34A853" d="M24 48c6.5 0 11.95-2.15 15.9-5.85l-7.3-5.65c-2.05 1.4-4.65 2.2-8.6 2.2-6.3 0-11.6-4.1-13.5-9.95l-7.98 6.2C6.5 42.6 14.6 48 24 48Z"/></svg>);
 
-/* ---------------- ART ---------------- */
 function Branch() { return (<g stroke="#A68A5B" fill="none" strokeWidth="1.6" strokeLinecap="round" opacity="0.7"><path d="M0 40 C 30 16, 70 8, 108 18"/><path d="M26 30q10-20 32-18q-8 20-32 18Z" fill="#DCCBB4" stroke="none"/><path d="M58 22q10-18 32-14q-8 18-32 14Z" fill="#DCCBB4" stroke="none"/><path d="M92 18q10-14 30-10q-8 15-30 10Z" fill="#DCCBB4" stroke="none"/></g>); }
 const ART_MOTIFS = {
   necklace: (<g><path d="M78 66C110 164 190 164 222 66" fill="none" stroke="#A68A5B" strokeWidth="2.5" strokeLinecap="round"/><circle cx="150" cy="150" r="24" fill="none" stroke="#A68A5B" strokeWidth="2.5"/><circle cx="150" cy="194" r="13" fill="#DCCBB4" stroke="#A68A5B" strokeWidth="1.5"/></g>),
@@ -621,9 +465,7 @@ const artForCategory = { 'Necklaces':'necklace', 'Earrings':'earrings', 'Bracele
 function ProductImage({ product, tone, className = '', zoom = true, imageIndex = 0 }) {
   const [failed, setFailed] = useState(false);
   const src = (product.images && product.images[imageIndex]) || '';
-  if (src && !failed) {
-    return <img src={src} alt={product.name} loading="lazy" onError={() => setFailed(true)} className={cx('w-full h-full object-cover', zoom && 'zoom-img scale-[1.1]', className)} />;
-  }
+  if (src && !failed) return <img src={src} alt={product.name} loading="lazy" onError={() => setFailed(true)} className={cx('w-full h-full object-cover', zoom && 'zoom-img scale-[1.1]', className)} />;
   return <ProductArt type={product.art || artForCategory[product.category] || 'charm'} tone={tone} alt={product.name} className={cx('w-full h-full', className)} />;
 }
 const CATEGORY_ICONS = {
@@ -636,36 +478,22 @@ const CATEGORY_ICONS = {
 };
 function CategoryIcon({ category, className = 'w-6 h-6' }) { return <svg viewBox="0 0 48 48" className={className} aria-hidden="true">{CATEGORY_ICONS[category] || CATEGORY_ICONS['Other Accessories']}</svg>; }
 
-/* ---------------- HERO SCRUB ---------------- */
 const HERO_FRAME_PATHS = Array.from({ length: 30 }, (_, i) => `./assets/frames/ezgif-frame-${String(i + 1).padStart(3, '0')}.jpg`);
 function HeroScrub() {
   const [frames, setFrames] = useState(null);
   const [idx, setIdx] = useState(0);
   const wrapRef = useRef(null);
-  useEffect(() => {
-    let alive = true;
-    Promise.all(HERO_FRAME_PATHS.map(src => new Promise(resolve => {
-      const img = new Image(); img.onload = () => resolve(src); img.onerror = () => resolve(null); img.src = src;
-    }))).then(list => { if (alive) setFrames(list.filter(Boolean)); });
-    return () => { alive = false; };
-  }, []);
+  useEffect(() => { let alive = true; Promise.all(HERO_FRAME_PATHS.map(src => new Promise(resolve => { const img = new Image(); img.onload = () => resolve(src); img.onerror = () => resolve(null); img.src = src; }))).then(list => { if (alive) setFrames(list.filter(Boolean)); }); return () => { alive = false; }; }, []);
   useEffect(() => {
     if (!frames || frames.length === 0) return;
-    const onScroll = () => {
-      const el = wrapRef.current; if (!el) return;
-      const r = el.getBoundingClientRect();
-      const p = Math.min(1, Math.max(0, (-r.top) / (r.height * 0.9)));
-      setIdx(Math.min(frames.length - 1, Math.floor(p * frames.length)));
-    };
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
+    const onScroll = () => { const el = wrapRef.current; if (!el) return; const r = el.getBoundingClientRect(); const p = Math.min(1, Math.max(0, (-r.top) / (r.height * 0.9))); setIdx(Math.min(frames.length - 1, Math.floor(p * frames.length))); };
+    onScroll(); window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, [frames]);
   if (!frames || frames.length === 0) return null;
   return (<div className="hero-scrub-wrap" ref={wrapRef} aria-hidden="true">{frames.map((src, i) => (<img key={src} src={src} alt="" decoding="async" className="hero-scrub-img" style={{ opacity: i === idx ? 1 : 0 }} />))}</div>);
 }
 
-/* ---------------- UI ---------------- */
 function Btn({ to, href, onClick, variant = 'primary', size = 'md', className, children, disabled, type = 'button', ariaLabel }) {
   const base = 'inline-flex items-center justify-center gap-2 rounded-full font-semibold tracking-[0.18em] uppercase transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.97]';
   const sizes = { sm: 'text-[10px] px-5 py-2.5', md: 'text-[11px] px-7 py-3.5', lg: 'text-xs px-9 py-4' };
@@ -709,32 +537,20 @@ function PageHero({ eyebrow, title, subtitle }) {
 }
 function Monogram({ className = 'w-10 h-10' }) { return (<svg viewBox="0 0 64 64" className={className} aria-hidden="true"><circle cx="32" cy="32" r="29" fill="#FFFDF9" stroke="#A68A5B" strokeWidth="1.6"/><text x="32" y="43" textAnchor="middle" fontFamily="'Cormorant Garamond',serif" fontSize="32" fontWeight="600" fill="#4A3B2A">R</text></svg>); }
 function BrandMark({ className = 'w-10 h-10' }) { return <Monogram className={className}/>; }
-function Logo({ onClick }) {
-  return (<Link to="/" onClick={onClick} className="flex items-center gap-2.5 group" ariaLabel="Reviora Ornaments — Home"><BrandMark className="w-10 h-10 md:w-11 md:h-11 transition-transform duration-300 group-hover:rotate-3"/><span className="hidden sm:block leading-none"><span className="serif block text-lg md:text-xl tracking-[0.22em] font-semibold">REVÍORA</span><span className="block text-[8px] tracking-[0.5em] text-gold font-semibold mt-1">ORNAMENTS</span></span></Link>);
-}
+function Logo({ onClick }) { return (<Link to="/" onClick={onClick} className="flex items-center gap-2.5 group" ariaLabel="Reviora Ornaments — Home"><BrandMark className="w-10 h-10 md:w-11 md:h-11 transition-transform duration-300 group-hover:rotate-3"/><span className="hidden sm:block leading-none"><span className="serif block text-lg md:text-xl tracking-[0.22em] font-semibold">REVÍORA</span><span className="block text-[8px] tracking-[0.5em] text-gold font-semibold mt-1">ORNAMENTS</span></span></Link>); }
 function Reveal({ children, delay = 0, className = '' }) {
   const ref = useRef(null);
-  useEffect(() => {
-    const el = ref.current; if (!el) return;
-    const obs = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) { el.classList.add('is-visible'); obs.disconnect(); } }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
+  useEffect(() => { const el = ref.current; if (!el) return; const obs = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) { el.classList.add('is-visible'); obs.disconnect(); } }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' }); obs.observe(el); return () => obs.disconnect(); }, []);
   return <div ref={ref} className={cx('reveal', className)} style={{ transitionDelay: `${delay}ms` }}>{children}</div>;
 }
 
-/* ---------------- PRODUCT CARD ---------------- */
 function ProductCard({ product }) {
   const soldOut = !isAvailable(product);
   const { addToCart } = useCart();
   const { notify } = useToast();
-  const onQuickAdd = (e) => {
-    e.preventDefault(); e.stopPropagation();
-    const r = addToCart(product, 1);
-    if (r.ok) notify(`${product.name} added to cart`);
-  };
+  const onQuickAdd = (e) => { e.preventDefault(); e.stopPropagation(); const r = addToCart(product, 1); if (r.ok) notify(`${product.name} added to cart`); };
   return (
-    <article className="group fade-up transition-transform duration-300 hover:-translate-y-1.5">
+    <article className="group fade-up transition-transform duration-300 hover:-translate-y-1.5 w-full">
       <Link to={`/product/${product.slug}`} className="block relative overflow-hidden rounded-2xl bg-ivory border border-beige/60 hover:border-gold/50 hover:shadow-lg hover:shadow-gold/10 transition-all duration-300" ariaLabel={`View ${product.name}`}>
         <div className="aspect-[4/5] overflow-hidden zoom-hover"><div className={cx('w-full h-full', soldOut && 'opacity-60 saturate-50')}><ProductImage product={product}/></div></div>
         <div className="absolute top-3 left-3 flex flex-col gap-1.5">
@@ -753,38 +569,68 @@ function ProductCard({ product }) {
     </article>
   );
 }
-function SkeletonCard() { return (<div className="fade-up" aria-hidden="true"><div className="aspect-[4/5] rounded-2xl skeleton"/><div className="pt-4 flex flex-col items-center gap-2"><div className="h-2 w-14 rounded skeleton"/><div className="h-3.5 w-28 rounded skeleton"/><div className="h-2.5 w-12 rounded skeleton"/></div></div>); }
+function SkeletonCard() { return (<div className="fade-up w-full" aria-hidden="true"><div className="aspect-[4/5] rounded-2xl skeleton"/><div className="pt-4 flex flex-col items-center gap-2"><div className="h-2 w-14 rounded skeleton"/><div className="h-3.5 w-28 rounded skeleton"/><div className="h-2.5 w-12 rounded skeleton"/></div></div>); }
+
+/* ProductRow — desktop: 4 visible, arrows scroll one page. Mobile: horizontal swipe. */
 function ProductRow({ products, loading }) {
-  const scrollerRef = useRef(null);
+  const desktopRef = useRef(null);
+  const mobileRef = useRef(null);
   const [canLeft, setCanLeft] = useState(false);
   const [canRight, setCanRight] = useState(false);
+
   const updateArrows = () => {
-    const el = scrollerRef.current; if (!el) return;
+    const el = desktopRef.current; if (!el) return;
     const maxScroll = el.scrollWidth - el.clientWidth;
     setCanLeft(el.scrollLeft > 4);
     setCanRight(el.scrollLeft < maxScroll - 4);
   };
   useEffect(() => {
-    const el = scrollerRef.current; if (!el) return;
+    const el = desktopRef.current; if (!el) return;
     updateArrows();
     el.addEventListener('scroll', updateArrows, { passive: true });
     window.addEventListener('resize', updateArrows);
     return () => { el.removeEventListener('scroll', updateArrows); window.removeEventListener('resize', updateArrows); };
   }, [products, loading]);
-  const scrollByAmount = (dir) => {
-    const el = scrollerRef.current; if (!el) return;
-    const card = el.querySelector('[data-product-card]');
-    const cw = card ? card.getBoundingClientRect().width + 16 : el.clientWidth / 4;
-    el.scrollBy({ left: dir * cw * 2, behavior: 'smooth' });
+
+  const scrollByPage = (dir) => {
+    const el = desktopRef.current; if (!el) return;
+    el.scrollBy({ left: dir * el.clientWidth, behavior: 'smooth' });
   };
-  if (loading) return <div className="flex gap-4 overflow-hidden">{Array.from({length:4}).map((_,i)=><div key={i} className="shrink-0 w-2/3 sm:w-1/2 md:w-1/4"><SkeletonCard/></div>)}</div>;
+
+  if (loading) return (
+    <>
+      <div className="hidden md:grid grid-cols-4 gap-6">{Array.from({length:4}).map((_,i)=><SkeletonCard key={i}/>)}</div>
+      <div className="md:hidden flex gap-4 overflow-hidden">{Array.from({length:2}).map((_,i)=><div key={i} className="shrink-0 w-[68%]"><SkeletonCard/></div>)}</div>
+    </>
+  );
+
+  if (products.length === 0) return null;
   const showArrows = products.length > 4;
+
   return (
     <div className="relative">
-      {showArrows && (<button onClick={() => scrollByAmount(-1)} aria-label="Scroll left" className={cx('hidden md:flex absolute -left-3 top-1/2 -translate-y-1/2 z-10 w-11 h-11 items-center justify-center rounded-full bg-ivory border border-beige shadow-md text-cocoa hover:bg-gold hover:text-ivory hover:border-gold transition-all duration-300', !canLeft && 'opacity-0 pointer-events-none')}><IconArrowLeft className="w-4 h-4"/></button>)}
-      {showArrows && (<button onClick={() => scrollByAmount(1)} aria-label="Scroll right" className={cx('hidden md:flex absolute -right-3 top-1/2 -translate-y-1/2 z-10 w-11 h-11 items-center justify-center rounded-full bg-ivory border border-beige shadow-md text-cocoa hover:bg-gold hover:text-ivory hover:border-gold transition-all duration-300', !canRight && 'opacity-0 pointer-events-none')}><IconArrow className="w-4 h-4"/></button>)}
-      <div ref={scrollerRef} className="flex gap-4 overflow-x-auto snap-x snap-mandatory no-scrollbar pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-4 md:overflow-visible">
-        {products.map(p => (<div key={p.id} data-product-card className="snap-start shrink-0 w-[68%] sm:w-[45%] md:w-auto"><ProductCard product={p}/></div>))}
+      {/* Desktop: strictly 4 visible, arrows to see more */}
+      <div className="hidden md:block relative">
+        {showArrows && (
+          <button onClick={() => scrollByPage(-1)} aria-label="Scroll left"
+            className={cx('absolute -left-3 top-1/2 -translate-y-1/2 z-10 w-11 h-11 flex items-center justify-center rounded-full bg-ivory border border-beige shadow-md text-cocoa hover:bg-gold hover:text-ivory hover:border-gold transition-all duration-300', !canLeft && 'opacity-0 pointer-events-none')}>
+            <IconArrowLeft className="w-4 h-4"/>
+          </button>
+        )}
+        {showArrows && (
+          <button onClick={() => scrollByPage(1)} aria-label="Scroll right"
+            className={cx('absolute -right-3 top-1/2 -translate-y-1/2 z-10 w-11 h-11 flex items-center justify-center rounded-full bg-ivory border border-beige shadow-md text-cocoa hover:bg-gold hover:text-ivory hover:border-gold transition-all duration-300', !canRight && 'opacity-0 pointer-events-none')}>
+            <IconArrow className="w-4 h-4"/>
+          </button>
+        )}
+        <div ref={desktopRef} className="row-desktop-track no-scrollbar">
+          {products.map(p => (<div key={p.id} className="min-w-0"><ProductCard product={p}/></div>))}
+        </div>
+      </div>
+
+      {/* Mobile: swipe */}
+      <div ref={mobileRef} className="md:hidden row-mobile-track no-scrollbar">
+        {products.map(p => (<div key={p.id}><ProductCard product={p}/></div>))}
       </div>
     </div>
   );
@@ -792,20 +638,13 @@ function ProductRow({ products, loading }) {
 function EmptyState({ title = 'No pieces found.', subtitle = 'Try another category or clear your filters.', action }) {
   return (<div className="text-center py-16 md:py-24 fade-up"><IconSparkle className="w-6 h-6 text-gold mx-auto"/><h3 className="serif text-2xl md:text-3xl mt-4">{title}</h3><p className="text-sm text-cocoa/65 mt-2">{subtitle}</p>{action && <div className="mt-6 flex justify-center gap-3">{action}</div>}</div>);
 }
-function ErrorState({ onRetry }) {
-  return (<div className="text-center py-16"><h3 className="serif text-2xl">Something went wrong.</h3><p className="text-sm text-cocoa/65 mt-2">We couldn't load the collection. Please try again.</p>{onRetry && <div className="mt-6"><Btn variant="outline" onClick={onRetry}>Try Again</Btn></div>}</div>);
-}
+function ErrorState({ onRetry }) { return (<div className="text-center py-16"><h3 className="serif text-2xl">Something went wrong.</h3><p className="text-sm text-cocoa/65 mt-2">We couldn't load the collection. Please try again.</p>{onRetry && <div className="mt-6"><Btn variant="outline" onClick={onRetry}>Try Again</Btn></div>}</div>); }
 
-/* ---------------- HEADER ---------------- */
 function Header({ searchOpen, setSearchOpen, menuOpen, setMenuOpen }) {
   const [scrolled, setScrolled] = useState(false);
   const { count: cartCount, setOpen: setCartOpen } = useCart();
   const { user } = useAuth();
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    onScroll(); window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+  useEffect(() => { const onScroll = () => setScrolled(window.scrollY > 8); onScroll(); window.addEventListener('scroll', onScroll, { passive: true }); return () => window.removeEventListener('scroll', onScroll); }, []);
   const navLink = 'text-[11px] font-semibold tracking-[0.2em] uppercase hover:text-gold transition-colors py-2 relative after:absolute after:left-0 after:-bottom-0.5 after:h-px after:w-0 after:bg-gold hover:after:w-full after:transition-all after:duration-300';
   return (
     <>
@@ -823,8 +662,7 @@ function Header({ searchOpen, setSearchOpen, menuOpen, setMenuOpen }) {
             <button className="p-2.5 rounded-full hover:bg-cream text-cocoa hover:text-gold transition-colors" aria-label="Search products" onClick={() => setSearchOpen(true)}><IconSearch/></button>
             <Link to={user ? '/account' : '/login'} className="p-2.5 rounded-full hover:bg-cream text-cocoa hover:text-gold transition-colors" ariaLabel={user ? 'Your account' : 'Sign in'}><IconUser/></Link>
             <button className="relative p-2.5 rounded-full hover:bg-cream text-cocoa hover:text-gold transition-colors" aria-label={cartCount > 0 ? `Open cart, ${cartCount} items` : 'Open cart'} onClick={() => setCartOpen(true)}>
-              <IconCart/>
-              {cartCount > 0 && (<span className="absolute -top-0.5 -right-0.5 min-w-[17px] h-[17px] px-1 rounded-full bg-gold text-ivory text-[9px] font-bold flex items-center justify-center">{cartCount}</span>)}
+              <IconCart/>{cartCount > 0 && (<span className="absolute -top-0.5 -right-0.5 min-w-[17px] h-[17px] px-1 rounded-full bg-gold text-ivory text-[9px] font-bold flex items-center justify-center">{cartCount}</span>)}
             </button>
             <button className="md:hidden p-2.5 rounded-full hover:bg-cream text-cocoa hover:text-gold transition-colors" aria-label="Open menu" aria-expanded={menuOpen} onClick={() => setMenuOpen(true)}><IconHamburger/></button>
           </div>
@@ -834,13 +672,7 @@ function Header({ searchOpen, setSearchOpen, menuOpen, setMenuOpen }) {
   );
 }
 function MenuDrawer({ open, onClose }) {
-  useEffect(() => {
-    if (!open) return;
-    document.body.style.overflow = 'hidden';
-    const onKey = (e) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', onKey);
-    return () => { document.body.style.overflow = ''; window.removeEventListener('keydown', onKey); };
-  }, [open, onClose]);
+  useEffect(() => { if (!open) return; document.body.style.overflow = 'hidden'; const onKey = (e) => { if (e.key === 'Escape') onClose(); }; window.addEventListener('keydown', onKey); return () => { document.body.style.overflow = ''; window.removeEventListener('keydown', onKey); }; }, [open, onClose]);
   if (!open) return null;
   const group = 'text-[9px] font-bold tracking-[0.35em] uppercase text-gold px-4 mt-6 mb-2';
   const item = 'block px-4 py-2.5 rounded-xl serif text-2xl hover:bg-cream hover:pl-6 transition-all duration-300';
@@ -855,9 +687,7 @@ function MenuDrawer({ open, onClose }) {
           <Link to="/" className={item} onClick={onClose}>Home</Link>
           <Link to="/shop" className={item} onClick={onClose}>Shop All</Link>
           <p className={group}>Categories</p>
-          {['necklaces','earrings','bracelets','rings','chains','other-accessories'].map(slug => (
-            <Link key={slug} to={`/category/${slug}`} className={item} onClick={onClose}>{slug.replace('-',' ').replace(/\b\w/g, c => c.toUpperCase())}</Link>
-          ))}
+          {['necklaces','earrings','bracelets','rings','chains','other-accessories'].map(slug => (<Link key={slug} to={`/category/${slug}`} className={item} onClick={onClose}>{slug.replace('-',' ').replace(/\b\w/g, c => c.toUpperCase())}</Link>))}
           <p className={group}>Account</p>
           <Link to="/login" className={small} onClick={onClose}>Sign In / Register</Link>
           <Link to="/account" className={small} onClick={onClose}>My Orders</Link>
@@ -880,11 +710,7 @@ function SearchOverlay({ open, onClose }) {
   const { products, loading } = useCatalog();
   const [q, setQ] = useState('');
   const inputRef = useRef(null);
-  useEffect(() => {
-    if (open) { document.body.style.overflow = 'hidden'; setTimeout(() => inputRef.current?.focus(), 60); }
-    else { document.body.style.overflow = ''; setQ(''); }
-    return () => { document.body.style.overflow = ''; };
-  }, [open]);
+  useEffect(() => { if (open) { document.body.style.overflow = 'hidden'; setTimeout(() => inputRef.current?.focus(), 60); } else { document.body.style.overflow = ''; setQ(''); } return () => { document.body.style.overflow = ''; }; }, [open]);
   useEffect(() => { const onKey = (e) => { if (e.key === 'Escape') onClose(); }; window.addEventListener('keydown', onKey); return () => window.removeEventListener('keydown', onKey); }, [onClose]);
   const results = useMemo(() => (!q.trim() || loading) ? [] : products.filter(p => isAvailable(p) && matchesQuery(p, q)).slice(0, 8), [q, products, loading]);
   const total = useMemo(() => products.filter(p => isAvailable(p) && matchesQuery(p, q)).length, [q, products]);
@@ -906,13 +732,11 @@ function SearchOverlay({ open, onClose }) {
               <>
                 <ul className="divide-y divide-beige/50">
                   {results.map(p => (
-                    <li key={p.id}>
-                      <Link to={`/product/${p.slug}`} onClick={onClose} className="flex items-center gap-4 py-3.5 group">
-                        <span className="block w-12 h-14 rounded-lg overflow-hidden border border-beige/70 shrink-0 bg-white"><ProductImage product={p}/></span>
-                        <span className="flex-1 min-w-0"><span className="serif text-lg block truncate group-hover:text-gold transition-colors">{p.name}</span><span className="text-[10px] tracking-[0.2em] uppercase text-cocoa/50">{p.sku} · {p.category}</span></span>
-                        <span className="text-sm shrink-0">{hasSale(p) ? formatPrice(effectivePrice(p)) : formatPrice(p.price)}</span>
-                      </Link>
-                    </li>
+                    <li key={p.id}><Link to={`/product/${p.slug}`} onClick={onClose} className="flex items-center gap-4 py-3.5 group">
+                      <span className="block w-12 h-14 rounded-lg overflow-hidden border border-beige/70 shrink-0 bg-white"><ProductImage product={p}/></span>
+                      <span className="flex-1 min-w-0"><span className="serif text-lg block truncate group-hover:text-gold transition-colors">{p.name}</span><span className="text-[10px] tracking-[0.2em] uppercase text-cocoa/50">{p.sku} · {p.category}</span></span>
+                      <span className="text-sm shrink-0">{hasSale(p) ? formatPrice(effectivePrice(p)) : formatPrice(p.price)}</span>
+                    </Link></li>
                   ))}
                 </ul>
                 {total > results.length && (<div className="mt-5 text-center"><Btn variant="outline" size="sm" onClick={viewAll}>View all {total} results</Btn></div>)}
@@ -926,12 +750,7 @@ function SearchOverlay({ open, onClose }) {
   );
 }
 
-/* ---------------- FOOTER ---------------- */
-function FloatingInstagram() {
-  return (
-    <a href={INSTAGRAM_DM_URL} target="_blank" rel="noopener noreferrer" aria-label={`DM Reviora on Instagram — @${CONFIG.INSTAGRAM_USERNAME}`} onClick={() => Analytics.track('instagram_click', { context: 'floating' })} className="fixed bottom-5 right-5 z-40 w-12 h-12 flex items-center justify-center rounded-full bg-cocoa text-ivory shadow-lg hover:bg-gold hover:scale-110 transition-all duration-300"><IconInstagram className="w-6 h-6"/></a>
-  );
-}
+function FloatingInstagram() { return (<a href={INSTAGRAM_DM_URL} target="_blank" rel="noopener noreferrer" aria-label={`DM Reviora on Instagram — @${CONFIG.INSTAGRAM_USERNAME}`} onClick={() => Analytics.track('instagram_click', { context: 'floating' })} className="fixed bottom-5 right-5 z-40 w-12 h-12 flex items-center justify-center rounded-full bg-cocoa text-ivory shadow-lg hover:bg-gold hover:scale-110 transition-all duration-300"><IconInstagram className="w-6 h-6"/></a>); }
 function Footer() {
   const { openPreferences } = useConsent();
   const col = 'space-y-2.5';
@@ -944,18 +763,9 @@ function Footer() {
           <p className="serif italic text-lg text-cocoa/75 mt-4">Small details. Big style.</p>
           <a href={INSTAGRAM_PROFILE_URL} target="_blank" rel="noopener noreferrer" onClick={() => Analytics.track('instagram_click', { context: 'footer' })} className="inline-flex items-center gap-2 mt-4 text-xs tracking-[0.2em] uppercase text-gold hover:text-cocoa transition-colors"><IconInstagram className="w-4 h-4"/>@{CONFIG.INSTAGRAM_USERNAME}</a>
         </div>
-        <nav aria-label="Shop">
-          <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-cocoa mb-4">Shop</p>
-          <div className={col}><Link to="/shop" className={link}>Shop All</Link><Link to="/category/necklaces" className={link}>Necklaces</Link><Link to="/category/earrings" className={link}>Earrings</Link><Link to="/category/bracelets" className={link}>Bracelets</Link><Link to="/category/rings" className={link}>Rings</Link></div>
-        </nav>
-        <nav aria-label="Company">
-          <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-cocoa mb-4">Company</p>
-          <div className={col}><Link to="/about" className={link}>About</Link><Link to="/faq" className={link}>FAQ</Link><Link to="/contact" className={link}>Contact</Link><Link to="/category/chains" className={link}>Chains</Link><Link to="/category/other-accessories" className={link}>Other Accessories</Link></div>
-        </nav>
-        <nav aria-label="Support">
-          <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-cocoa mb-4">Support</p>
-          <div className={col}><Link to="/shipping" className={link}>Shipping & Delivery</Link><Link to="/returns" className={link}>Returns & Exchange</Link><Link to="/care" className={link}>Jewellery Care</Link><Link to="/terms" className={link}>Terms & Conditions</Link><Link to="/privacy" className={link}>Privacy & Cookies</Link><button onClick={openPreferences} className="block text-xs tracking-[0.12em] uppercase text-cocoa/65 hover:text-gold text-left transition-colors">Cookie Preferences</button></div>
-        </nav>
+        <nav aria-label="Shop"><p className="text-[10px] font-bold tracking-[0.3em] uppercase text-cocoa mb-4">Shop</p><div className={col}><Link to="/shop" className={link}>Shop All</Link><Link to="/category/necklaces" className={link}>Necklaces</Link><Link to="/category/earrings" className={link}>Earrings</Link><Link to="/category/bracelets" className={link}>Bracelets</Link><Link to="/category/rings" className={link}>Rings</Link></div></nav>
+        <nav aria-label="Company"><p className="text-[10px] font-bold tracking-[0.3em] uppercase text-cocoa mb-4">Company</p><div className={col}><Link to="/about" className={link}>About</Link><Link to="/faq" className={link}>FAQ</Link><Link to="/contact" className={link}>Contact</Link><Link to="/category/chains" className={link}>Chains</Link><Link to="/category/other-accessories" className={link}>Other Accessories</Link></div></nav>
+        <nav aria-label="Support"><p className="text-[10px] font-bold tracking-[0.3em] uppercase text-cocoa mb-4">Support</p><div className={col}><Link to="/shipping" className={link}>Shipping & Delivery</Link><Link to="/returns" className={link}>Returns & Exchange</Link><Link to="/care" className={link}>Jewellery Care</Link><Link to="/terms" className={link}>Terms & Conditions</Link><Link to="/privacy" className={link}>Privacy & Cookies</Link><button onClick={openPreferences} className="block text-xs tracking-[0.12em] uppercase text-cocoa/65 hover:text-gold text-left transition-colors">Cookie Preferences</button></div></nav>
       </div>
       <div className="border-t border-beige/60">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-2 text-[10px] tracking-[0.18em] uppercase text-cocoa/50">
@@ -967,20 +777,9 @@ function Footer() {
   );
 }
 
-/* ---------------- HOME ---------------- */
 function TrustStrip() {
-  const items = [
-    { icon: <IconSparkle className="w-5 h-5"/>, label: 'Premium Quality' },
-    { icon: <IconHeart className="w-5 h-5"/>, label: 'Timeless Designs' },
-    { icon: <IconLeaf className="w-5 h-5"/>, label: 'For Every You' },
-  ];
-  return (
-    <section className="border-y border-beige/60 bg-ivory/60">
-      <div className="max-w-5xl mx-auto px-4 py-6 flex flex-wrap items-center justify-center gap-x-10 gap-y-3">
-        {items.map((it, i) => (<React.Fragment key={it.label}>{i > 0 && <IconSparkle className="w-2 h-2 text-gold/70 hidden sm:block"/>}<span className="flex items-center gap-2.5 text-gold">{it.icon}<span className="text-[10px] font-bold tracking-[0.3em] uppercase text-cocoa/80">{it.label}</span></span></React.Fragment>))}
-      </div>
-    </section>
-  );
+  const items = [{ icon: <IconSparkle className="w-5 h-5"/>, label: 'Premium Quality' }, { icon: <IconHeart className="w-5 h-5"/>, label: 'Timeless Designs' }, { icon: <IconLeaf className="w-5 h-5"/>, label: 'For Every You' }];
+  return (<section className="border-y border-beige/60 bg-ivory/60"><div className="max-w-5xl mx-auto px-4 py-6 flex flex-wrap items-center justify-center gap-x-10 gap-y-3">{items.map((it, i) => (<React.Fragment key={it.label}>{i > 0 && <IconSparkle className="w-2 h-2 text-gold/70 hidden sm:block"/>}<span className="flex items-center gap-2.5 text-gold">{it.icon}<span className="text-[10px] font-bold tracking-[0.3em] uppercase text-cocoa/80">{it.label}</span></span></React.Fragment>))}</div></section>);
 }
 function CollectionCard({ category }) {
   return (
@@ -993,18 +792,19 @@ function CollectionCard({ category }) {
     </Link>
   );
 }
-const ALL_CATS = [
-  { slug:'necklaces', name:'Necklaces' }, { slug:'earrings', name:'Earrings' }, { slug:'bracelets', name:'Bracelets' },
-  { slug:'rings', name:'Rings' }, { slug:'chains', name:'Chains' }, { slug:'other-accessories', name:'Other Accessories' },
-];
+const ALL_CATS = [{ slug:'necklaces', name:'Necklaces' }, { slug:'earrings', name:'Earrings' }, { slug:'bracelets', name:'Bracelets' }, { slug:'rings', name:'Rings' }, { slug:'chains', name:'Chains' }, { slug:'other-accessories', name:'Other Accessories' }];
+
 function Home() {
   useSEO({ title: '', description: DEFAULT_DESCRIPTION });
   const { products, loading } = useCatalog();
   useEffect(() => { Analytics.track('page_view', { page: 'home' }); }, []);
+
+  /* Featured: max 3 items */
   const featured = products.filter(p => isAvailable(p) && p.collection_type === 'featured').slice(0, 3);
   const newIn    = products.filter(p => isAvailable(p) && p.collection_type === 'new_arrival');
   const best     = products.filter(p => isAvailable(p) && p.collection_type === 'best_seller');
   const otherAll = products.filter(p => isAvailable(p) && p.collection_type === 'regular');
+
   return (
     <main>
       <section className="relative overflow-hidden bg-cream">
@@ -1033,9 +833,14 @@ function Home() {
       <TrustStrip/>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Featured Collection — max 3 */}
         <section className="pt-16 md:pt-24">
           <Reveal><SectionHeading eyebrow="Curated for you" title="Featured Collection"/></Reveal>
-          <Reveal delay={100}><div className="grid sm:grid-cols-3 gap-4 md:gap-6">{featured.map(c => <CollectionCard key={c.id} category={{ slug: (c.category||'').toLowerCase().replace(/\s+/g,'-'), name: c.name }}/>)}</div></Reveal>
+          <Reveal delay={100}>
+            <div className="grid sm:grid-cols-3 gap-4 md:gap-6">
+              {featured.map(p => <ProductCard key={p.id} product={p}/>)}
+            </div>
+          </Reveal>
         </section>
 
         <section className="pt-16 md:pt-24">
@@ -1100,6 +905,7 @@ function Home() {
     </main>
   );
 }
+
 function InstagramCTA() {
   return (
     <section className="py-16 md:py-24 text-center px-4">
@@ -1144,26 +950,16 @@ function Accordion({ items, defaultOpen = 0 }) {
 const FAQS = [
   { q:'How do I order?', a:'Add pieces to your cart, sign in with Google, complete the checkout form, verify your phone via OTP, and submit. Checkout stays disabled until a payment provider is configured — the site will tell you when it is available.' },
   { q:'Why do I need to sign in with Google?', a:'A verified account lets us tie your order to you, protect your data, and let you see your own order history. Only Google sign-in is supported for customers.' },
-  { q:'Why do you ask for a phone OTP?', a:'We verify your phone number with a one-time code sent by our server so delivery and order updates reach the right person. The code is checked on the server, never in the browser.' },
-  { q:'How do I know the price?', a:'Every product page shows the price (and any active sale price) in INR. The cart shows a running subtotal. Final totals, shipping and payment are confirmed at checkout.' },
+  { q:'Why do you ask for a phone OTP?', a:'We verify your phone number with a one-time code sent by our server so delivery and order updates reach the right person.' },
+  { q:'How do I know the price?', a:'Every product page shows the price (and any active sale price) in INR. The cart shows a running subtotal.' },
   { q:'Can I place an order by DM?', a:'You can always DM us on Instagram — @' + CONFIG.INSTAGRAM_USERNAME + ' — but the recommended flow is the secure checkout on the site.' },
   { q:'How long does delivery take?', a:'[Placeholder — update before launch] Dispatch within 1–2 business days after payment confirmation; delivery usually 3–7 business days.' },
-  { q:'Do you offer returns?', a:'[Placeholder — update before launch] See our Returns & Exchange page. If anything is wrong, contact us with your Order ID.' },
-  { q:'How should I care for my jewellery?', a:'Keep pieces dry, put them on after perfume and lotion, wipe gently after wear and store them in a pouch. Full guide on the Jewellery Care page.' },
+  { q:'Do you offer returns?', a:'[Placeholder — update before launch] See our Returns & Exchange page.' },
+  { q:'How should I care for my jewellery?', a:'Keep pieces dry, put them on after perfume and lotion, wipe gently after wear and store them in a pouch.' },
 ];
 
-/* ---------------- SHOP ---------------- */
-const PRICE_RANGES = [
-  { id: 'all', label: 'All prices', test: () => true },
-  { id: 'under200', label: 'Under ₹200', test: p => effectivePrice(p) < 200 },
-  { id: '200to300', label: '₹200 – ₹299', test: p => effectivePrice(p) >= 200 && effectivePrice(p) < 300 },
-  { id: 'above300', label: '₹300 +', test: p => effectivePrice(p) >= 300 },
-];
-const SORTS = [
-  { id: 'featured', label: 'Featured' }, { id: 'newest', label: 'Newest' },
-  { id: 'price-asc', label: 'Price: Low to High' }, { id: 'price-desc', label: 'Price: High to Low' },
-  { id: 'alpha', label: 'Alphabetical' },
-];
+const PRICE_RANGES = [{ id: 'all', label: 'All prices', test: () => true }, { id: 'under200', label: 'Under ₹200', test: p => effectivePrice(p) < 200 }, { id: '200to300', label: '₹200 – ₹299', test: p => effectivePrice(p) >= 200 && effectivePrice(p) < 300 }, { id: 'above300', label: '₹300 +', test: p => effectivePrice(p) >= 300 }];
+const SORTS = [{ id: 'featured', label: 'Featured' }, { id: 'newest', label: 'Newest' }, { id: 'price-asc', label: 'Price: Low to High' }, { id: 'price-desc', label: 'Price: High to Low' }, { id: 'alpha', label: 'Alphabetical' }];
 function ProductFilters({ filters, setFilters, products }) {
   const countFor = (catName) => products.filter(p => isAvailable(p) && p.category === catName).length;
   const check = 'accent-[#A68A5B] w-3.5 h-3.5';
@@ -1172,12 +968,8 @@ function ProductFilters({ filters, setFilters, products }) {
   const head = 'text-[10px] font-bold tracking-[0.3em] uppercase text-cocoa mb-3.5';
   return (
     <div>
-      <div className={section}><p className={head}>Category</p><div className="space-y-2.5">
-        {ALL_CATS.map(c => (<label key={c.slug} className="flex items-center gap-2.5"><input type="checkbox" className={check} checked={filters.categories.includes(c.name)} onChange={e => setFilters(f => ({ ...f, categories: e.target.checked ? [...f.categories, c.name] : f.categories.filter(x => x !== c.name) }))}/><span className={label}>{c.name} <span className="text-cocoa/40">({countFor(c.name)})</span></span></label>))}
-      </div></div>
-      <div className={section}><p className={head}>Price</p><div className="space-y-2.5">
-        {PRICE_RANGES.map(r => (<label key={r.id} className="flex items-center gap-2.5"><input type="radio" name="price" className={check} checked={filters.price === r.id} onChange={() => setFilters(f => ({ ...f, price: r.id }))}/><span className={label}>{r.label}</span></label>))}
-      </div></div>
+      <div className={section}><p className={head}>Category</p><div className="space-y-2.5">{ALL_CATS.map(c => (<label key={c.slug} className="flex items-center gap-2.5"><input type="checkbox" className={check} checked={filters.categories.includes(c.name)} onChange={e => setFilters(f => ({ ...f, categories: e.target.checked ? [...f.categories, c.name] : f.categories.filter(x => x !== c.name) }))}/><span className={label}>{c.name} <span className="text-cocoa/40">({countFor(c.name)})</span></span></label>))}</div></div>
+      <div className={section}><p className={head}>Price</p><div className="space-y-2.5">{PRICE_RANGES.map(r => (<label key={r.id} className="flex items-center gap-2.5"><input type="radio" name="price" className={check} checked={filters.price === r.id} onChange={() => setFilters(f => ({ ...f, price: r.id }))}/><span className={label}>{r.label}</span></label>))}</div></div>
       <div className={section}><p className={head}>Collection</p><div className="space-y-2.5">
         <label className="flex items-center gap-2.5"><input type="checkbox" className={check} checked={filters.newArrivals} onChange={e => setFilters(f => ({ ...f, newArrivals: e.target.checked }))}/><span className={label}>New Arrivals</span></label>
         <label className="flex items-center gap-2.5"><input type="checkbox" className={check} checked={filters.bestsellers} onChange={e => setFilters(f => ({ ...f, bestsellers: e.target.checked }))}/><span className={label}>Best Sellers</span></label>
@@ -1199,33 +991,13 @@ function Shop({ preset = null }) {
   const filtered = useMemo(() => {
     const range = PRICE_RANGES.find(r => r.id === filters.price) || PRICE_RANGES[0];
     let list = products.filter(p => isAvailable(p) && (!filters.categories.length || filters.categories.includes(p.category)) && range.test(p) && (!filters.inStockOnly || p.availability === 'in_stock') && (!filters.newArrivals || p.collection_type === 'new_arrival') && (!filters.bestsellers || p.collection_type === 'best_seller') && matchesQuery(p, filters.q));
-    const sorters = {
-      'featured': (a, b) => (b.collection_type === 'featured') - (a.collection_type === 'featured') || a.name.localeCompare(b.name),
-      'newest': (a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''),
-      'price-asc': (a, b) => effectivePrice(a) - effectivePrice(b),
-      'price-desc': (a, b) => effectivePrice(b) - effectivePrice(a),
-      'alpha': (a, b) => a.name.localeCompare(b.name),
-    };
+    const sorters = { 'featured': (a, b) => (b.collection_type === 'featured') - (a.collection_type === 'featured') || a.name.localeCompare(b.name), 'newest': (a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''), 'price-asc': (a, b) => effectivePrice(a) - effectivePrice(b), 'price-desc': (a, b) => effectivePrice(b) - effectivePrice(a), 'alpha': (a, b) => a.name.localeCompare(b.name) };
     return [...list].sort(sorters[filters.sort] || sorters.featured);
   }, [products, filters]);
-  const activeChips = [
-    ...filters.categories.map(c => ({ label: c, clear: () => setFilters(f => ({ ...f, categories: f.categories.filter(x => x !== c) })) })),
-    ...(filters.price !== 'all' ? [{ label: PRICE_RANGES.find(r => r.id === filters.price).label, clear: () => setFilters(f => ({ ...f, price: 'all' })) }] : []),
-    ...(filters.newArrivals ? [{ label: 'New', clear: () => setFilters(f => ({ ...f, newArrivals: false })) }] : []),
-    ...(filters.bestsellers ? [{ label: 'Bestseller', clear: () => setFilters(f => ({ ...f, bestsellers: false })) }] : []),
-    ...(filters.inStockOnly ? [{ label: 'In stock', clear: () => setFilters(f => ({ ...f, inStockOnly: false })) }] : []),
-    ...(filters.q ? [{ label: `“${filters.q}”`, clear: () => setFilters(f => ({ ...f, q: '' })) }] : []),
-  ];
+  const activeChips = [...filters.categories.map(c => ({ label: c, clear: () => setFilters(f => ({ ...f, categories: f.categories.filter(x => x !== c) })) })), ...(filters.price !== 'all' ? [{ label: PRICE_RANGES.find(r => r.id === filters.price).label, clear: () => setFilters(f => ({ ...f, price: 'all' })) }] : []), ...(filters.newArrivals ? [{ label: 'New', clear: () => setFilters(f => ({ ...f, newArrivals: false })) }] : []), ...(filters.bestsellers ? [{ label: 'Bestseller', clear: () => setFilters(f => ({ ...f, bestsellers: false })) }] : []), ...(filters.inStockOnly ? [{ label: 'In stock', clear: () => setFilters(f => ({ ...f, inStockOnly: false })) }] : []), ...(filters.q ? [{ label: `“${filters.q}”`, clear: () => setFilters(f => ({ ...f, q: '' })) }] : [])];
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 md:pt-14 pb-8">
-      <Reveal>
-        <header className="text-center fade-up">
-          <p className="text-[10px] font-semibold tracking-[0.35em] uppercase text-gold flex items-center justify-center gap-2"><IconSparkle className="w-2.5 h-2.5"/>{preset ? 'Category' : 'The Catalogue'}</p>
-          <h1 className="serif text-4xl md:text-5xl mt-3">{title}</h1>
-          <SparkleDivider className="mt-5"/>
-          <p className="mt-4 text-sm text-cocoa/70 max-w-xl mx-auto">{subtitle}</p>
-        </header>
-      </Reveal>
+      <Reveal><header className="text-center fade-up"><p className="text-[10px] font-semibold tracking-[0.35em] uppercase text-gold flex items-center justify-center gap-2"><IconSparkle className="w-2.5 h-2.5"/>{preset ? 'Category' : 'The Catalogue'}</p><h1 className="serif text-4xl md:text-5xl mt-3">{title}</h1><SparkleDivider className="mt-5"/><p className="mt-4 text-sm text-cocoa/70 max-w-xl mx-auto">{subtitle}</p></header></Reveal>
       <div className="mt-10 grid lg:grid-cols-[240px_1fr] gap-8 lg:gap-12">
         <aside className="hidden lg:block"><div className="sticky top-24"><ProductFilters filters={filters} setFilters={setFilters} products={products}/></div></aside>
         <div>
@@ -1236,9 +1008,7 @@ function Shop({ preset = null }) {
           {showFilters && (<div className="lg:hidden mt-4 rounded-2xl border border-beige bg-white p-5 fade-up"><ProductFilters filters={filters} setFilters={setFilters} products={products}/></div>)}
           {activeChips.length > 0 && (<div className="flex flex-wrap gap-2 mt-4">{activeChips.map(chip => (<button key={chip.label} onClick={chip.clear} className="inline-flex items-center gap-1.5 bg-beige/50 border border-beige rounded-full px-3.5 py-1.5 text-[10px] tracking-[0.15em] uppercase hover:border-gold transition-colors">{chip.label} <IconClose className="w-3 h-3"/></button>))}</div>)}
           <div className="mt-7">
-            {error ? <ErrorState/> : loading ? (<div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">{Array.from({length:6}).map((_,i)=><SkeletonCard key={i}/>)}</div>)
-              : filtered.length === 0 ? (<EmptyState title="No pieces found." subtitle="Try another category or clear your filters." action={<Btn variant="outline" size="sm" onClick={() => setFilters(f => ({ ...f, categories: [], price: 'all', newArrivals: false, bestsellers: false, inStockOnly: false, q: '' }))}>Clear Filters</Btn>}/>)
-              : (<div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">{filtered.map(p => <ProductCard key={p.id} product={p}/>)}</div>)}
+            {error ? <ErrorState/> : loading ? (<div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">{Array.from({length:6}).map((_,i)=><SkeletonCard key={i}/>)}</div>) : filtered.length === 0 ? (<EmptyState title="No pieces found." subtitle="Try another category or clear your filters." action={<Btn variant="outline" size="sm" onClick={() => setFilters(f => ({ ...f, categories: [], price: 'all', newArrivals: false, bestsellers: false, inStockOnly: false, q: '' }))}>Clear Filters</Btn>}/>) : (<div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">{filtered.map(p => <ProductCard key={p.id} product={p}/>)}</div>)}
           </div>
         </div>
       </div>
@@ -1247,7 +1017,6 @@ function Shop({ preset = null }) {
 }
 function CategoryPage({ slug }) { const cat = ALL_CATS.find(c => c.slug === slug); if (!cat) return <NotFound/>; return <Shop preset={cat}/>; }
 
-/* ---------------- PRODUCT DETAIL ---------------- */
 function ProductPage({ slug }) {
   const { products } = useCatalog();
   const { addToCart } = useCart();
@@ -1270,27 +1039,15 @@ function ProductPage({ slug }) {
   const dmHref = CONFIG.WHATSAPP_NUMBER ? `https://wa.me/${CONFIG.WHATSAPP_NUMBER}?text=${encodeURIComponent(`Hi Reviora, I'd like to order: ${product.name} (${product.sku}) × ${qty}`)}` : null;
   return (
     <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-8 pb-16">
-      <nav aria-label="Breadcrumb" className="text-[10px] tracking-[0.2em] uppercase text-cocoa/50 mb-6 md:mb-10">
-        <Link to="/" className="hover:text-gold">Home</Link><span className="mx-2">/</span>
-        <Link to={`/category/${(product.category || '').toLowerCase().replace(/\s+/g,'-')}`} className="hover:text-gold">{product.category}</Link><span className="mx-2">/</span>
-        <span className="text-cocoa/80">{product.name}</span>
-      </nav>
+      <nav aria-label="Breadcrumb" className="text-[10px] tracking-[0.2em] uppercase text-cocoa/50 mb-6 md:mb-10"><Link to="/" className="hover:text-gold">Home</Link><span className="mx-2">/</span><Link to={`/category/${(product.category || '').toLowerCase().replace(/\s+/g,'-')}`} className="hover:text-gold">{product.category}</Link><span className="mx-2">/</span><span className="text-cocoa/80">{product.name}</span></nav>
       <div className="grid md:grid-cols-2 gap-10 md:gap-14 items-start">
-        <Reveal>
-          <div>
-            <div className="rounded-3xl overflow-hidden border border-beige/70 bg-ivory aspect-[4/5] zoom-hover"><ProductImage product={product} imageIndex={imgIdx} className="!scale-100 hover:!scale-[1.45]"/></div>
-            {imageCount > 1 && (<div className="flex gap-2 mt-3 overflow-x-auto no-scrollbar pb-1">{product.images.map((_, i) => (<button key={i} onClick={() => setImgIdx(i)} aria-label={`Show image ${i+1}`} className={cx('w-16 h-20 shrink-0 rounded-lg overflow-hidden border-2 transition-all', i === imgIdx ? 'border-gold' : 'border-beige/70 hover:border-gold/60')}><ProductImage product={product} imageIndex={i}/></button>))}</div>)}
-          </div>
-        </Reveal>
+        <Reveal><div><div className="rounded-3xl overflow-hidden border border-beige/70 bg-ivory aspect-[4/5] zoom-hover"><ProductImage product={product} imageIndex={imgIdx} className="!scale-100 hover:!scale-[1.45]"/></div>{imageCount > 1 && (<div className="flex gap-2 mt-3 overflow-x-auto no-scrollbar pb-1">{product.images.map((_, i) => (<button key={i} onClick={() => setImgIdx(i)} aria-label={`Show image ${i+1}`} className={cx('w-16 h-20 shrink-0 rounded-lg overflow-hidden border-2 transition-all', i === imgIdx ? 'border-gold' : 'border-beige/70 hover:border-gold/60')}><ProductImage product={product} imageIndex={i}/></button>))}</div>)}</div></Reveal>
         <Reveal delay={120}>
           <div>
             <p className="text-[10px] font-semibold tracking-[0.3em] uppercase text-gold">{product.category}{product.subcategory ? ' · ' + product.subcategory : ''}</p>
             <h1 className="serif text-4xl md:text-5xl mt-3 leading-tight">{product.name}</h1>
             <p className="mt-4 text-2xl">{hasSale(product) ? (<><span className="line-through text-cocoa/40 text-lg mr-2">{formatPrice(product.price)}</span><span className="text-gold">{formatPrice(effectivePrice(product))}</span></>) : formatPrice(product.price)}<span className="text-xs text-cocoa/50 tracking-widest uppercase ml-2">{product.currency}</span></p>
-            <div className="mt-4 flex flex-wrap items-center gap-3">
-              <span className="text-[10px] tracking-[0.2em] uppercase text-cocoa/50">SKU · {product.sku}</span>
-              {product.availability === 'out_of_stock' ? <Badge tone="cocoa">Out of Stock</Badge> : product.availability === 'made_to_order' ? <Badge tone="gold">Made to Order</Badge> : <Badge tone="gold">In Stock</Badge>}
-            </div>
+            <div className="mt-4 flex flex-wrap items-center gap-3"><span className="text-[10px] tracking-[0.2em] uppercase text-cocoa/50">SKU · {product.sku}</span>{product.availability === 'out_of_stock' ? <Badge tone="cocoa">Out of Stock</Badge> : product.availability === 'made_to_order' ? <Badge tone="gold">Made to Order</Badge> : <Badge tone="gold">In Stock</Badge>}</div>
             <SparkleDivider className="!justify-start mt-6"/>
             <p className="mt-5 text-cocoa/80 leading-relaxed">{product.description}</p>
             <dl className="mt-6 space-y-2 text-sm">
@@ -1298,8 +1055,7 @@ function ProductPage({ slug }) {
               {product.care && <div className="flex gap-3"><dt className="text-[10px] tracking-[0.2em] uppercase text-cocoa/50 w-24 pt-0.5">Care</dt><dd className="text-cocoa/80">{product.care}</dd></div>}
             </dl>
             <div className="mt-8 rounded-3xl border border-beige bg-ivory p-6">
-              <div className="flex items-center gap-4">
-                <span className="text-[10px] tracking-[0.2em] uppercase text-cocoa/60">Quantity</span>
+              <div className="flex items-center gap-4"><span className="text-[10px] tracking-[0.2em] uppercase text-cocoa/60">Quantity</span>
                 <div className="inline-flex items-center border border-beige rounded-full overflow-hidden">
                   <button className="px-3 py-2 hover:bg-cream disabled:opacity-40" aria-label="Decrease quantity" disabled={qty <= 1} onClick={() => setQty(q => Math.max(1, q - 1))}>−</button>
                   <span className="px-4 text-sm tabular-nums">{qty}</span>
@@ -1310,42 +1066,27 @@ function ProductPage({ slug }) {
               <div className="mt-5 grid sm:grid-cols-3 gap-2.5">
                 <Btn variant="primary" className="w-full" disabled={!available} onClick={onBuyNow}>Buy Now</Btn>
                 <Btn variant="gold" className="w-full" disabled={!available} onClick={onAdd}>Add to Cart</Btn>
-                {dmHref ? (<Btn href={dmHref} variant="outline" className="w-full" onClick={() => Analytics.track('dm_click', { sku: product.sku })}>DM to Order</Btn>)
-                  : (<button disabled className="w-full rounded-full border border-cocoa/20 text-[11px] font-semibold tracking-[0.18em] uppercase text-cocoa/40 py-3.5 cursor-not-allowed" title="Messaging contact not configured">DM to Order</button>)}
+                {dmHref ? (<Btn href={dmHref} variant="outline" className="w-full" onClick={() => Analytics.track('dm_click', { sku: product.sku })}>DM to Order</Btn>) : (<button disabled className="w-full rounded-full border border-cocoa/20 text-[11px] font-semibold tracking-[0.18em] uppercase text-cocoa/40 py-3.5 cursor-not-allowed" title="Messaging contact not configured">DM to Order</button>)}
               </div>
-              {!dmHref && <p className="mt-3 text-[10px] text-cocoa/50 italic">Direct messaging isn't configured yet. Set CONFIG.WHATSAPP_NUMBER to enable "DM to Order".</p>}
-              {!available && <p className="mt-4 text-xs text-cocoa/60">This piece is currently unavailable. Check back soon or contact us on Instagram.</p>}
+              {!dmHref && <p className="mt-3 text-[10px] text-cocoa/50 italic">Direct messaging isn't configured yet.</p>}
+              {!available && <p className="mt-4 text-xs text-cocoa/60">This piece is currently unavailable. Check back soon.</p>}
               <p className="mt-4 text-[11px] text-cocoa/55 flex items-center gap-2"><IconInstagram className="w-3.5 h-3.5 text-gold"/>@{CONFIG.INSTAGRAM_USERNAME}</p>
             </div>
-            <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-[11px] tracking-[0.15em] uppercase">
-              <Link to="/shipping" className="text-cocoa/60 hover:text-gold transition-colors">Shipping & Delivery</Link>
-              <Link to="/returns" className="text-cocoa/60 hover:text-gold transition-colors">Returns & Exchange</Link>
-              <Link to="/care" className="text-cocoa/60 hover:text-gold transition-colors">Jewellery Care</Link>
-              <Link to="/terms" className="text-cocoa/60 hover:text-gold transition-colors">Terms</Link>
-            </div>
+            <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-[11px] tracking-[0.15em] uppercase"><Link to="/shipping" className="text-cocoa/60 hover:text-gold">Shipping & Delivery</Link><Link to="/returns" className="text-cocoa/60 hover:text-gold">Returns & Exchange</Link><Link to="/care" className="text-cocoa/60 hover:text-gold">Jewellery Care</Link><Link to="/terms" className="text-cocoa/60 hover:text-gold">Terms</Link></div>
           </div>
         </Reveal>
       </div>
-      {related.length > 0 && (
-        <section className="mt-20 md:mt-28">
-          <Reveal><SectionHeading eyebrow="Complete the look" title="You may also love" align="left" linkTo={`/category/${(product.category || '').toLowerCase().replace(/\s+/g,'-')}`} linkLabel="View category"/></Reveal>
-          <Reveal delay={100}><ProductRow products={related}/></Reveal>
-        </section>
-      )}
+      {related.length > 0 && (<section className="mt-20 md:mt-28"><Reveal><SectionHeading eyebrow="Complete the look" title="You may also love" align="left" linkTo={`/category/${(product.category || '').toLowerCase().replace(/\s+/g,'-')}`} linkLabel="View category"/></Reveal><Reveal delay={100}><ProductRow products={related}/></Reveal></section>)}
     </main>
   );
 }
 
-/* ---------------- LOGIN / ACCOUNT ---------------- */
 function Login() {
   useSEO({ title: 'Sign In' });
   const { user, signInWithGoogle, signOut } = useAuth();
   const { notify } = useToast();
   useEffect(() => { if (user) navigate('/account'); }, [user]);
-  const handleSignIn = async () => {
-    try { await signInWithGoogle(); notify('Opening Google sign-in…'); }
-    catch (e) { notify(e.message || 'Sign-in failed — check your Supabase configuration'); }
-  };
+  const handleSignIn = async () => { try { await signInWithGoogle(); notify('Opening Google sign-in…'); } catch (e) { notify(e.message || 'Sign-in failed — check your Supabase configuration'); } };
   return (
     <main className="max-w-md mx-auto px-4 py-16">
       <PageHero eyebrow="Account" title="Sign In" subtitle="Only Google sign-in is supported for customers. This keeps your orders and data secure."/>
@@ -1365,16 +1106,9 @@ function Account() {
   const { user, signOut } = useAuth();
   useEffect(() => { if (!user) navigate('/login'); }, [user]);
   if (!user) return null;
-  return (
-    <main className="max-w-3xl mx-auto px-4 py-16">
-      <PageHero eyebrow="Account" title="My Account" subtitle={`Signed in as ${user.email}`}/>
-      <div className="rounded-3xl border border-beige bg-ivory p-6"><p className="serif text-xl">Order history</p><p className="text-sm text-cocoa/65 mt-1">Orders you place while signed in will appear here once the Supabase Edge Functions are deployed and orders are stored in Supabase.</p></div>
-      <div className="mt-6 text-center"><button onClick={signOut} className="text-[10px] tracking-[0.25em] uppercase text-cocoa/60 hover:text-gold underline underline-offset-4">Sign out</button></div>
-    </main>
-  );
+  return (<main className="max-w-3xl mx-auto px-4 py-16"><PageHero eyebrow="Account" title="My Account" subtitle={`Signed in as ${user.email}`}/><div className="rounded-3xl border border-beige bg-ivory p-6"><p className="serif text-xl">Order history</p><p className="text-sm text-cocoa/65 mt-1">Orders you place while signed in will appear here once the Supabase Edge Functions are deployed and orders are stored in Supabase.</p></div><div className="mt-6 text-center"><button onClick={signOut} className="text-[10px] tracking-[0.25em] uppercase text-cocoa/60 hover:text-gold underline underline-offset-4">Sign out</button></div></main>);
 }
 
-/* ---------------- CHECKOUT ---------------- */
 function Checkout() {
   useSEO({ title: 'Checkout' });
   const { user, session, signInWithGoogle } = useAuth();
@@ -1390,343 +1124,102 @@ function Checkout() {
   const [busy, setBusy] = useState(false);
   useEffect(() => { if (user && !form.email) setForm(f => ({ ...f, email: user.email })); }, [user]);
   useEffect(() => { if (cooldown <= 0) return; const t = setTimeout(() => setCooldown(c => c - 1), 1000); return () => clearTimeout(t); }, [cooldown]);
-  if (!user) return (
-    <main className="max-w-md mx-auto px-4 py-16 text-center">
-      <PageHero eyebrow="Checkout" title="Sign in to continue" subtitle="A verified Google account is required so we can link your order securely."/>
-      <button onClick={signInWithGoogle} className="inline-flex items-center justify-center gap-3 rounded-full border border-cocoa/30 hover:border-gold hover:text-gold px-6 py-3.5 text-[11px] font-semibold tracking-[0.2em] uppercase transition-colors"><IconGoogle className="w-4 h-4"/>Continue with Google</button>
-    </main>
-  );
-  if (items.length === 0) return (
-    <main className="max-w-md mx-auto px-4 py-16 text-center">
-      <IconSparkle className="w-6 h-6 text-gold mx-auto"/>
-      <h1 className="serif text-3xl mt-4">Your cart is empty</h1>
-      <p className="text-sm text-cocoa/65 mt-2">Add a piece before checking out.</p>
-      <div className="mt-6"><Btn to="/shop">Shop the Collection</Btn></div>
-    </main>
-  );
+  if (!user) return (<main className="max-w-md mx-auto px-4 py-16 text-center"><PageHero eyebrow="Checkout" title="Sign in to continue" subtitle="A verified Google account is required so we can link your order securely."/><button onClick={signInWithGoogle} className="inline-flex items-center justify-center gap-3 rounded-full border border-cocoa/30 hover:border-gold hover:text-gold px-6 py-3.5 text-[11px] font-semibold tracking-[0.2em] uppercase transition-colors"><IconGoogle className="w-4 h-4"/>Continue with Google</button></main>);
+  if (items.length === 0) return (<main className="max-w-md mx-auto px-4 py-16 text-center"><IconSparkle className="w-6 h-6 text-gold mx-auto"/><h1 className="serif text-3xl mt-4">Your cart is empty</h1><p className="text-sm text-cocoa/65 mt-2">Add a piece before checking out.</p><div className="mt-6"><Btn to="/shop">Shop the Collection</Btn></div></main>);
   const sendOtp = async () => {
     if (!form.phone) return notify('Please enter your phone number');
     if (cooldown > 0) return;
     setBusy(true);
-    try {
-      await EdgeAPI.call('send-otp', { phone: form.phone });
-      setOtpSent(true); setCooldown(30);
-    } catch (e) { notify(e.message || 'Could not send OTP'); }
+    try { await EdgeAPI.call('send-otp', { phone: form.phone }); setOtpSent(true); setCooldown(30); }
+    catch (e) { notify(e.message || 'Could not send OTP'); }
     finally { setBusy(false); }
   };
   const verifyOtp = async () => {
     if (!/^\d{6}$/.test(otp)) return notify('Enter the 6-digit code');
     setBusy(true);
-    try {
-      const r = await EdgeAPI.call('verify-otp', { phone: form.phone, code: otp });
-      if (!r.verified) throw new Error(r.error || 'Verification failed');
-      setOtpVerified(true); notify('Phone verified ✓');
-    } catch (e) { notify(e.message || 'Verification failed'); }
+    try { const r = await EdgeAPI.call('verify-otp', { phone: form.phone, code: otp }); if (!r.verified) throw new Error(r.error || 'Verification failed'); setOtpVerified(true); notify('Phone verified ✓'); }
+    catch (e) { notify(e.message || 'Verification failed'); }
     finally { setBusy(false); }
   };
-  const validators = {
-    name: v => v.trim().length >= 2 || 'Enter your full name',
-    address: v => v.trim().length >= 6 || 'Enter your delivery address',
-    city: v => v.trim().length >= 2 || 'Enter your city',
-    state: v => v.trim().length >= 2 || 'Enter your state',
-    postal: v => /^\d{4,10}$/.test(v.trim()) || 'Enter a valid postal code',
-    country: v => v.trim().length >= 2 || 'Enter your country',
-    phone: v => /^\+?\d{6,15}$/.test(v.replace(/\s|-/g,'')) || 'Enter a valid phone number',
-  };
+  const validators = { name: v => v.trim().length >= 2 || 'Enter your full name', address: v => v.trim().length >= 6 || 'Enter your delivery address', city: v => v.trim().length >= 2 || 'Enter your city', state: v => v.trim().length >= 2 || 'Enter your state', postal: v => /^\d{4,10}$/.test(v.trim()) || 'Enter a valid postal code', country: v => v.trim().length >= 2 || 'Enter your country', phone: v => /^\+?\d{6,15}$/.test(v.replace(/\s|-/g,'')) || 'Enter a valid phone number' };
   const submitOrder = async () => {
-    for (const [k, test] of Object.entries(validators)) {
-      const r = test(form[k] || '');
-      if (r !== true) { notify(r); return; }
-    }
+    for (const [k, test] of Object.entries(validators)) { const r = test(form[k] || ''); if (r !== true) { notify(r); return; } }
     if (!otpVerified) return notify('Please verify your phone number');
     if (!agreeTerms) return notify('Please accept the Terms & Conditions');
     if (!agreeShipping) return notify('Please accept the Shipping Policy');
-    if (!CONFIG.PAYMENT_CONFIG.enabled) { notify('Checkout is temporarily unavailable — payment provider not yet configured. Please try again later or DM us.'); return; }
+    if (!CONFIG.PAYMENT_CONFIG.enabled) { notify('Checkout is temporarily unavailable — payment provider not yet configured.'); return; }
     setBusy(true);
-    try {
-      const payload = { customer: { ...form, email: user.email }, items: items.map(it => ({ product_id: it.id, qty: it.qty })), agreements: { terms: agreeTerms, shipping: agreeShipping, marketing: form.marketing } };
-      const r = await EdgeAPI.call('checkout', payload, { userToken: session?.access_token });
-      if (r.payment_url) window.location.href = r.payment_url;
-      else notify(r.message || 'Order submitted');
-    } catch (e) { notify(e.message || 'Could not submit order'); }
+    try { const payload = { customer: { ...form, email: user.email }, items: items.map(it => ({ product_id: it.id, qty: it.qty })), agreements: { terms: agreeTerms, shipping: agreeShipping, marketing: form.marketing } }; const r = await EdgeAPI.call('checkout', payload, { userToken: session?.access_token }); if (r.payment_url) window.location.href = r.payment_url; else notify(r.message || 'Order submitted'); }
+    catch (e) { notify(e.message || 'Could not submit order'); }
     finally { setBusy(false); }
   };
-  const field = (name, label, type = 'text', extra = {}) => (
-    <label className="block">
-      <span className="text-[10px] font-bold tracking-[0.25em] uppercase text-cocoa/60">{label}</span>
-      <input type={type} value={form[name]} {...extra} onChange={e => setForm(f => ({ ...f, [name]: e.target.value }))} className="mt-1.5 w-full bg-white border border-beige rounded-xl px-4 py-3 text-sm outline-none focus:border-gold transition-colors"/>
-    </label>
-  );
+  const field = (name, label, type = 'text', extra = {}) => (<label className="block"><span className="text-[10px] font-bold tracking-[0.25em] uppercase text-cocoa/60">{label}</span><input type={type} value={form[name]} {...extra} onChange={e => setForm(f => ({ ...f, [name]: e.target.value }))} className="mt-1.5 w-full bg-white border border-beige rounded-xl px-4 py-3 text-sm outline-none focus:border-gold transition-colors"/></label>);
   return (
     <main className="max-w-5xl mx-auto px-4 sm:px-6 py-10 md:py-14">
-      <Reveal>
-        <header className="text-center fade-up mb-10">
-          <p className="text-[10px] font-semibold tracking-[0.35em] uppercase text-gold flex items-center justify-center gap-2"><IconSparkle className="w-2.5 h-2.5"/>Secure Checkout</p>
-          <h1 className="serif text-4xl md:text-5xl mt-3">Checkout</h1>
-        </header>
-      </Reveal>
+      <Reveal><header className="text-center fade-up mb-10"><p className="text-[10px] font-semibold tracking-[0.35em] uppercase text-gold flex items-center justify-center gap-2"><IconSparkle className="w-2.5 h-2.5"/>Secure Checkout</p><h1 className="serif text-4xl md:text-5xl mt-3">Checkout</h1></header></Reveal>
       <div className="grid lg:grid-cols-[1fr_360px] gap-8">
         <div className="space-y-6">
-          <section className="rounded-3xl border border-beige bg-ivory p-6">
-            <p className="serif text-xl">Delivery details</p>
-            <div className="mt-4 grid sm:grid-cols-2 gap-4">
-              {field('name', 'Full name')}
-              {field('email', 'Email (from Google)', 'email', { readOnly: true })}
-              {field('phone', 'Phone (with country code)', 'tel', { placeholder: '+91 99999 99999' })}
-              {field('postal', 'Postal code')}
-              <div className="sm:col-span-2">{field('address', 'Full address')}</div>
-              {field('city', 'City')}
-              {field('state', 'State')}
-              {field('country', 'Country')}
-            </div>
-          </section>
-          <section className="rounded-3xl border border-beige bg-ivory p-6">
-            <p className="serif text-xl">Verify your phone</p>
-            <p className="text-xs text-cocoa/65 mt-1">We'll send a 6-digit code by SMS. The code is verified on our server.</p>
-            <div className="mt-4 flex flex-wrap gap-3 items-center">
-              <button onClick={sendOtp} disabled={busy || cooldown > 0 || otpVerified} className="px-5 py-3 rounded-full bg-cocoa text-ivory text-[10px] font-semibold tracking-[0.2em] uppercase hover:bg-gold transition-colors disabled:opacity-40">{otpVerified ? 'Verified ✓' : cooldown > 0 ? `Resend in ${cooldown}s` : 'Get OTP'}</button>
-              {otpSent && !otpVerified && (<>
-                <input value={otp} onChange={e => setOtp(e.target.value.replace(/\D/g,'').slice(0,6))} placeholder="6-digit code" className="w-32 bg-white border border-beige rounded-full px-4 py-2.5 text-sm tracking-[0.3em] text-center outline-none focus:border-gold" inputMode="numeric" maxLength={6}/>
-                <button onClick={verifyOtp} disabled={busy} className="px-5 py-3 rounded-full border border-cocoa/30 text-[10px] font-semibold tracking-[0.2em] uppercase hover:border-gold hover:text-gold transition-colors disabled:opacity-40">Verify</button>
-              </>)}
-            </div>
-            {!SupabaseREST.isConfigured() && (<p className="mt-3 text-[10px] text-cocoa/50 italic">Supabase isn't configured — OTP functions won't respond until it is.</p>)}
-          </section>
-          <section className="rounded-3xl border border-beige bg-ivory p-6 space-y-3">
-            <p className="serif text-xl">Agreements</p>
-            <label className="flex items-start gap-3 text-sm cursor-pointer"><input type="checkbox" className="mt-1 accent-[#A68A5B]" checked={agreeTerms} onChange={e => setAgreeTerms(e.target.checked)}/><span>I agree to the <Link to="/terms" className="text-gold underline underline-offset-4">Terms & Conditions</Link> and User Policies. <strong className="text-[10px] tracking-[0.2em] uppercase text-gold">Required</strong></span></label>
-            <label className="flex items-start gap-3 text-sm cursor-pointer"><input type="checkbox" className="mt-1 accent-[#A68A5B]" checked={agreeShipping} onChange={e => setAgreeShipping(e.target.checked)}/><span>I agree to the <Link to="/shipping" className="text-gold underline underline-offset-4">Shipping Policy</Link>. <strong className="text-[10px] tracking-[0.2em] uppercase text-gold">Required</strong></span></label>
-            <label className="flex items-start gap-3 text-sm cursor-pointer"><input type="checkbox" className="mt-1 accent-[#A68A5B]" checked={form.marketing} onChange={e => setForm(f => ({ ...f, marketing: e.target.checked }))}/><span>Send me emails about new products, launches and updates. <span className="text-[10px] tracking-[0.2em] uppercase text-cocoa/50">Optional</span></span></label>
-          </section>
-          {!CONFIG.PAYMENT_CONFIG.enabled && (
-            <div className="rounded-3xl border-2 border-dashed border-gold/50 bg-gold/5 p-6 text-center">
-              <IconSparkle className="w-5 h-5 text-gold mx-auto"/>
-              <p className="serif text-xl mt-3">Checkout is temporarily unavailable</p>
-              <p className="text-sm text-cocoa/70 mt-2 max-w-md mx-auto">A payment provider hasn't been configured yet, so orders can't be submitted. Please DM us on Instagram if you'd like to place an order now.</p>
-              <div className="mt-4"><Btn href={INSTAGRAM_DM_URL} variant="outline" size="sm"><IconInstagram className="w-3.5 h-3.5"/>DM us on Instagram</Btn></div>
-            </div>
-          )}
+          <section className="rounded-3xl border border-beige bg-ivory p-6"><p className="serif text-xl">Delivery details</p><div className="mt-4 grid sm:grid-cols-2 gap-4">{field('name', 'Full name')}{field('email', 'Email (from Google)', 'email', { readOnly: true })}{field('phone', 'Phone (with country code)', 'tel', { placeholder: '+91 99999 99999' })}{field('postal', 'Postal code')}<div className="sm:col-span-2">{field('address', 'Full address')}</div>{field('city', 'City')}{field('state', 'State')}{field('country', 'Country')}</div></section>
+          <section className="rounded-3xl border border-beige bg-ivory p-6"><p className="serif text-xl">Verify your phone</p><p className="text-xs text-cocoa/65 mt-1">We'll send a 6-digit code by SMS. The code is verified on our server.</p><div className="mt-4 flex flex-wrap gap-3 items-center"><button onClick={sendOtp} disabled={busy || cooldown > 0 || otpVerified} className="px-5 py-3 rounded-full bg-cocoa text-ivory text-[10px] font-semibold tracking-[0.2em] uppercase hover:bg-gold transition-colors disabled:opacity-40">{otpVerified ? 'Verified ✓' : cooldown > 0 ? `Resend in ${cooldown}s` : 'Get OTP'}</button>{otpSent && !otpVerified && (<><input value={otp} onChange={e => setOtp(e.target.value.replace(/\D/g,'').slice(0,6))} placeholder="6-digit code" className="w-32 bg-white border border-beige rounded-full px-4 py-2.5 text-sm tracking-[0.3em] text-center outline-none focus:border-gold" inputMode="numeric" maxLength={6}/><button onClick={verifyOtp} disabled={busy} className="px-5 py-3 rounded-full border border-cocoa/30 text-[10px] font-semibold tracking-[0.2em] uppercase hover:border-gold hover:text-gold transition-colors disabled:opacity-40">Verify</button></>)}</div>{!SupabaseREST.isConfigured() && (<p className="mt-3 text-[10px] text-cocoa/50 italic">Supabase isn't configured — OTP functions won't respond until it is.</p>)}</section>
+          <section className="rounded-3xl border border-beige bg-ivory p-6 space-y-3"><p className="serif text-xl">Agreements</p><label className="flex items-start gap-3 text-sm cursor-pointer"><input type="checkbox" className="mt-1 accent-[#A68A5B]" checked={agreeTerms} onChange={e => setAgreeTerms(e.target.checked)}/><span>I agree to the <Link to="/terms" className="text-gold underline underline-offset-4">Terms & Conditions</Link>. <strong className="text-[10px] tracking-[0.2em] uppercase text-gold">Required</strong></span></label><label className="flex items-start gap-3 text-sm cursor-pointer"><input type="checkbox" className="mt-1 accent-[#A68A5B]" checked={agreeShipping} onChange={e => setAgreeShipping(e.target.checked)}/><span>I agree to the <Link to="/shipping" className="text-gold underline underline-offset-4">Shipping Policy</Link>. <strong className="text-[10px] tracking-[0.2em] uppercase text-gold">Required</strong></span></label><label className="flex items-start gap-3 text-sm cursor-pointer"><input type="checkbox" className="mt-1 accent-[#A68A5B]" checked={form.marketing} onChange={e => setForm(f => ({ ...f, marketing: e.target.checked }))}/><span>Send me emails about new products. <span className="text-[10px] tracking-[0.2em] uppercase text-cocoa/50">Optional</span></span></label></section>
+          {!CONFIG.PAYMENT_CONFIG.enabled && (<div className="rounded-3xl border-2 border-dashed border-gold/50 bg-gold/5 p-6 text-center"><IconSparkle className="w-5 h-5 text-gold mx-auto"/><p className="serif text-xl mt-3">Checkout is temporarily unavailable</p><p className="text-sm text-cocoa/70 mt-2 max-w-md mx-auto">A payment provider hasn't been configured yet, so orders can't be submitted. Please DM us on Instagram.</p><div className="mt-4"><Btn href={INSTAGRAM_DM_URL} variant="outline" size="sm"><IconInstagram className="w-3.5 h-3.5"/>DM us on Instagram</Btn></div></div>)}
         </div>
-        <aside className="lg:sticky lg:top-24 h-fit">
-          <div className="rounded-3xl border border-beige bg-ivory p-6">
-            <p className="serif text-xl">Order summary</p>
-            <ul className="mt-4 space-y-3 divide-y divide-beige/50">
-              {items.map(it => (<li key={it.id} className="pt-3 first:pt-0 flex gap-3"><span className="block w-12 h-14 rounded-lg overflow-hidden border border-beige/70 shrink-0 bg-white"><ProductImage product={it}/></span><span className="flex-1 min-w-0"><span className="serif text-base block truncate">{it.name}</span><span className="text-[10px] tracking-[0.18em] uppercase text-cocoa/50">{it.sku} · × {it.qty}</span></span><span className="text-sm">{formatPrice(it.lineTotal)}</span></li>))}
-            </ul>
-            <dl className="mt-4 pt-4 border-t border-beige/60 space-y-1.5 text-sm">
-              <div className="flex justify-between"><dt className="text-cocoa/60">Subtotal</dt><dd>{formatPrice(subtotal)}</dd></div>
-              {discount > 0 && <div className="flex justify-between text-gold"><dt>Savings</dt><dd>− {formatPrice(discount)}</dd></div>}
-              <div className="flex justify-between"><dt className="text-cocoa/60">Shipping</dt><dd>{shipping === 0 ? 'Free' : formatPrice(shipping)}</dd></div>
-              <div className="flex justify-between border-t border-beige/60 pt-2 mt-2"><dt className="text-[10px] tracking-[0.25em] uppercase text-cocoa/60">Total</dt><dd className="serif text-xl">{formatPrice(total)}</dd></div>
-            </dl>
-            <button onClick={submitOrder} disabled={busy || !CONFIG.PAYMENT_CONFIG.enabled} className="mt-5 w-full rounded-full bg-cocoa text-ivory text-[11px] font-semibold tracking-[0.2em] uppercase py-4 hover:bg-gold transition-colors disabled:opacity-40 disabled:cursor-not-allowed">{CONFIG.PAYMENT_CONFIG.enabled ? 'Place Order' : 'Checkout Unavailable'}</button>
-            <p className="mt-3 text-[10px] text-cocoa/50 text-center">Totals are re-validated on the server before payment.</p>
-          </div>
-        </aside>
+        <aside className="lg:sticky lg:top-24 h-fit"><div className="rounded-3xl border border-beige bg-ivory p-6"><p className="serif text-xl">Order summary</p><ul className="mt-4 space-y-3 divide-y divide-beige/50">{items.map(it => (<li key={it.id} className="pt-3 first:pt-0 flex gap-3"><span className="block w-12 h-14 rounded-lg overflow-hidden border border-beige/70 shrink-0 bg-white"><ProductImage product={it}/></span><span className="flex-1 min-w-0"><span className="serif text-base block truncate">{it.name}</span><span className="text-[10px] tracking-[0.18em] uppercase text-cocoa/50">{it.sku} · × {it.qty}</span></span><span className="text-sm">{formatPrice(it.lineTotal)}</span></li>))}</ul><dl className="mt-4 pt-4 border-t border-beige/60 space-y-1.5 text-sm"><div className="flex justify-between"><dt className="text-cocoa/60">Subtotal</dt><dd>{formatPrice(subtotal)}</dd></div>{discount > 0 && <div className="flex justify-between text-gold"><dt>Savings</dt><dd>− {formatPrice(discount)}</dd></div>}<div className="flex justify-between"><dt className="text-cocoa/60">Shipping</dt><dd>{shipping === 0 ? 'Free' : formatPrice(shipping)}</dd></div><div className="flex justify-between border-t border-beige/60 pt-2 mt-2"><dt className="text-[10px] tracking-[0.25em] uppercase text-cocoa/60">Total</dt><dd className="serif text-xl">{formatPrice(total)}</dd></div></dl><button onClick={submitOrder} disabled={busy || !CONFIG.PAYMENT_CONFIG.enabled} className="mt-5 w-full rounded-full bg-cocoa text-ivory text-[11px] font-semibold tracking-[0.2em] uppercase py-4 hover:bg-gold transition-colors disabled:opacity-40 disabled:cursor-not-allowed">{CONFIG.PAYMENT_CONFIG.enabled ? 'Place Order' : 'Checkout Unavailable'}</button><p className="mt-3 text-[10px] text-cocoa/50 text-center">Totals are re-validated on the server before payment.</p></div></aside>
       </div>
     </main>
   );
 }
 
-/* ---------------- STATIC PAGES ---------------- */
 function About() {
   useSEO({ title: 'About Reviora' });
-  return (
-    <main>
-      <PageHero eyebrow="Our story" title="About Reviora" subtitle="Minimal jewellery and ornaments, made for her everyday moments."/>
-      <Reveal><section className="max-w-2xl mx-auto px-4 prose">
-        <p>Reviora Ornaments began with a simple idea — that the smallest details often complete the whole look. We curate minimal, aesthetic jewellery and ornaments <strong>for women</strong>: pieces that feel premium but stay approachable, timeless but never boring.</p>
-        <p>We combine a boutique Instagram presence with a secure, modern checkout so ordering feels as considered as the pieces themselves.</p>
-        <p className="italic">More than just jewellery — it's the detail that makes the moment yours.</p>
-      </section></Reveal>
-      <section className="text-center mt-16 pb-4"><Btn href={INSTAGRAM_PROFILE_URL} variant="gold" onClick={() => Analytics.track('instagram_click', { context: 'about' })}><IconInstagram className="w-4 h-4"/>Follow the journey — @{CONFIG.INSTAGRAM_USERNAME}</Btn></section>
-    </main>
-  );
+  return (<main><PageHero eyebrow="Our story" title="About Reviora" subtitle="Minimal jewellery and ornaments, made for her everyday moments."/><Reveal><section className="max-w-2xl mx-auto px-4 prose"><p>Reviora Ornaments began with a simple idea — that the smallest details often complete the whole look. We curate minimal, aesthetic jewellery and ornaments <strong>for women</strong>: pieces that feel premium but stay approachable, timeless but never boring.</p><p>We combine a boutique Instagram presence with a secure, modern checkout.</p><p className="italic">More than just jewellery — it's the detail that makes the moment yours.</p></section></Reveal><section className="text-center mt-16 pb-4"><Btn href={INSTAGRAM_PROFILE_URL} variant="gold" onClick={() => Analytics.track('instagram_click', { context: 'about' })}><IconInstagram className="w-4 h-4"/>Follow — @{CONFIG.INSTAGRAM_USERNAME}</Btn></section></main>);
 }
 function FAQ() {
   useSEO({ title: 'FAQ' });
-  return (
-    <main>
-      <PageHero eyebrow="Help centre" title="Frequently Asked Questions" subtitle="Everything about ordering, delivery and caring for your pieces."/>
-      <Reveal><section className="max-w-3xl mx-auto px-4 pb-6">
-        <Accordion items={FAQS}/>
-        <div className="mt-10 rounded-2xl border border-beige bg-white p-6 text-center"><p className="serif text-xl">Still have a question?</p><p className="text-sm text-cocoa/70 mt-1">Need help? DM us on Instagram — we're happy to talk.</p><div className="mt-4"><Btn href={INSTAGRAM_DM_URL} variant="outline" size="sm"><IconInstagram className="w-3.5 h-3.5"/>@{CONFIG.INSTAGRAM_USERNAME}</Btn></div></div>
-      </section></Reveal>
-    </main>
-  );
+  return (<main><PageHero eyebrow="Help centre" title="Frequently Asked Questions" subtitle="Everything about ordering, delivery and caring for your pieces."/><Reveal><section className="max-w-3xl mx-auto px-4 pb-6"><Accordion items={FAQS}/><div className="mt-10 rounded-2xl border border-beige bg-white p-6 text-center"><p className="serif text-xl">Still have a question?</p><p className="text-sm text-cocoa/70 mt-1">Need help? DM us on Instagram.</p><div className="mt-4"><Btn href={INSTAGRAM_DM_URL} variant="outline" size="sm"><IconInstagram className="w-3.5 h-3.5"/>@{CONFIG.INSTAGRAM_USERNAME}</Btn></div></div></section></Reveal></main>);
 }
 function Shipping() {
   useSEO({ title: 'Shipping & Delivery' });
-  return (
-    <main>
-      <PageHero eyebrow="Good to know" title="Shipping & Delivery"/>
-      <Reveal><section className="max-w-2xl mx-auto px-4 prose">
-        <div className="rounded-2xl border border-gold/40 bg-white p-5 mb-8"><p className="text-sm italic text-cocoa/70">📦 Shipping information will be updated here. Please DM us on Instagram for the latest delivery estimate for your location.</p></div>
-        <h2>How shipping works</h2>
-        <ul>
-          <li>All orders are confirmed in DM or through our secure checkout before dispatch.</li>
-          <li><strong>Processing time:</strong> [update — e.g., dispatched within 1–2 business days of payment confirmation].</li>
-          <li><strong>Delivery time:</strong> [update — e.g., 3–7 business days depending on your pincode].</li>
-          <li><strong>Shipping charges:</strong> Free above ₹999; a flat fee applies below that. Confirmed at checkout.</li>
-          <li><strong>Tracking:</strong> tracking details are shared with your order once dispatched [update].</li>
-        </ul>
-        <h2>Order status</h2>
-        <p>DM us on Instagram with your Order ID (e.g. RV-2026-0001) and we'll update you right away.</p>
-      </section></Reveal>
-    </main>
-  );
+  return (<main><PageHero eyebrow="Good to know" title="Shipping & Delivery"/><Reveal><section className="max-w-2xl mx-auto px-4 prose"><div className="rounded-2xl border border-gold/40 bg-white p-5 mb-8"><p className="text-sm italic text-cocoa/70">📦 Shipping information will be updated here. Please DM us for the latest estimate.</p></div><h2>How shipping works</h2><ul><li>All orders confirmed at checkout before dispatch.</li><li><strong>Processing time:</strong> [update].</li><li><strong>Delivery time:</strong> [update].</li><li><strong>Shipping charges:</strong> Free above ₹999; flat fee below.</li><li><strong>Tracking:</strong> shared once dispatched [update].</li></ul><h2>Order status</h2><p>DM us with your Order ID (e.g. RV-2026-0001) and we'll update you.</p></section></Reveal></main>);
 }
 function Returns() {
   useSEO({ title: 'Returns & Exchange' });
-  return (
-    <main>
-      <PageHero eyebrow="Good to know" title="Returns & Exchange" subtitle="We want you to love every Reviora piece."/>
-      <Reveal><section className="max-w-2xl mx-auto px-4 prose">
-        <div className="rounded-2xl border border-gold/40 bg-white p-5 mb-8"><p className="text-sm italic text-cocoa/70">Please check our current return policy before placing an order — the final policy will be published here.</p></div>
-        <h2>Return policy</h2>
-        <ul>
-          <li><strong>Return window:</strong> [update — e.g., within X days of delivery].</li>
-          <li><strong>Eligibility:</strong> items must be unworn, unused and in original packaging [update].</li>
-          <li><strong>How to request:</strong> DM us on Instagram with your Order ID and photos [update].</li>
-          <li><strong>Non-returnable:</strong> [update — e.g., pierced earrings for hygiene reasons].</li>
-        </ul>
-        <h2>Exchanges</h2>
-        <ul><li>Exchanges are subject to stock availability [update].</li><li><strong>Exchange shipping:</strong> [update].</li></ul>
-      </section></Reveal>
-    </main>
-  );
+  return (<main><PageHero eyebrow="Good to know" title="Returns & Exchange" subtitle="We want you to love every Reviora piece."/><Reveal><section className="max-w-2xl mx-auto px-4 prose"><div className="rounded-2xl border border-gold/40 bg-white p-5 mb-8"><p className="text-sm italic text-cocoa/70">Please check our current return policy before ordering.</p></div><h2>Return policy</h2><ul><li><strong>Return window:</strong> [update].</li><li><strong>Eligibility:</strong> [update].</li><li><strong>How to request:</strong> DM us with Order ID + photos.</li><li><strong>Non-returnable:</strong> [update].</li></ul><h2>Exchanges</h2><ul><li>Subject to stock availability.</li><li><strong>Exchange shipping:</strong> [update].</li></ul></section></Reveal></main>);
 }
 function Care() {
   useSEO({ title: 'Jewellery Care' });
-  return (
-    <main>
-      <PageHero eyebrow="Make it last" title="Jewellery Care" subtitle="Small habits keep your pieces looking new."/>
-      <Reveal><section className="max-w-2xl mx-auto px-4 prose">
-        <ul>
-          <li><strong>Keep it dry.</strong> Remove jewellery before showering, swimming or sleeping.</li>
-          <li><strong>Last on, first off.</strong> Put jewellery on after perfume, lotion and makeup.</li>
-          <li><strong>Wipe after wear.</strong> A gentle wipe with a soft, dry cloth removes oils and moisture.</li>
-          <li><strong>Store separately.</strong> Keep pieces in a pouch or box, away from sunlight and humidity.</li>
-          <li><strong>Avoid chemicals.</strong> Household cleaners, chlorine and salt water can dull the finish.</li>
-        </ul>
-      </section></Reveal>
-    </main>
-  );
+  return (<main><PageHero eyebrow="Make it last" title="Jewellery Care" subtitle="Small habits keep your pieces looking new."/><Reveal><section className="max-w-2xl mx-auto px-4 prose"><ul><li><strong>Keep it dry.</strong> Remove before showering, swimming or sleeping.</li><li><strong>Last on, first off.</strong> After perfume, lotion and makeup.</li><li><strong>Wipe after wear.</strong> Soft dry cloth removes oils and moisture.</li><li><strong>Store separately.</strong> In a pouch or box, away from sunlight.</li><li><strong>Avoid chemicals.</strong> Cleaners, chlorine and salt water can dull the finish.</li></ul></section></Reveal></main>);
 }
 function Contact() {
   useSEO({ title: 'Contact' });
-  const cards = [
-    { icon: <IconInstagram className="w-5 h-5"/>, t: 'Orders & Products', d: 'Questions about a piece, sizing or availability — DM us.' },
-    { icon: <IconSparkle className="w-5 h-5"/>, t: 'Order Status', d: 'Send us your Order ID and we will update you on your order.' },
-    { icon: <IconHeart className="w-5 h-5"/>, t: 'Something Else', d: 'Collaborations, gifting or just saying hi — our DMs are open.' },
-  ];
-  return (
-    <main>
-      <PageHero eyebrow="We'd love to hear from you" title="Contact Reviora" subtitle="The fastest way to reach us is Instagram. No forms, no waiting queues."/>
-      <Reveal><section className="max-w-4xl mx-auto px-4 grid sm:grid-cols-3 gap-4">
-        {cards.map(c => (<div key={c.t} className="rounded-2xl border border-beige/70 bg-white p-6 text-center transition-all duration-300 hover:border-gold/60 hover:shadow-lg hover:shadow-gold/10 hover:-translate-y-1"><span className="w-11 h-11 rounded-full border border-gold/40 text-gold inline-flex items-center justify-center">{c.icon}</span><p className="serif text-xl mt-3">{c.t}</p><p className="text-xs text-cocoa/65 mt-2 leading-relaxed">{c.d}</p></div>))}
-      </section></Reveal>
-      <section className="text-center mt-12 pb-4"><Btn href={INSTAGRAM_DM_URL} variant="gold" size="lg" onClick={() => Analytics.track('instagram_click', { context: 'contact' })}><IconInstagram className="w-4 h-4"/>DM us on Instagram</Btn><p className="mt-3 text-[10px] tracking-[0.25em] uppercase text-cocoa/50">@{CONFIG.INSTAGRAM_USERNAME}</p></section>
-    </main>
-  );
+  const cards = [{ icon: <IconInstagram className="w-5 h-5"/>, t: 'Orders & Products', d: 'Questions about a piece — DM us.' }, { icon: <IconSparkle className="w-5 h-5"/>, t: 'Order Status', d: 'Send us your Order ID.' }, { icon: <IconHeart className="w-5 h-5"/>, t: 'Something Else', d: 'Collaborations, gifting or saying hi.' }];
+  return (<main><PageHero eyebrow="We'd love to hear from you" title="Contact Reviora" subtitle="The fastest way to reach us is Instagram."/><Reveal><section className="max-w-4xl mx-auto px-4 grid sm:grid-cols-3 gap-4">{cards.map(c => (<div key={c.t} className="rounded-2xl border border-beige/70 bg-white p-6 text-center transition-all duration-300 hover:border-gold/60 hover:shadow-lg hover:shadow-gold/10 hover:-translate-y-1"><span className="w-11 h-11 rounded-full border border-gold/40 text-gold inline-flex items-center justify-center">{c.icon}</span><p className="serif text-xl mt-3">{c.t}</p><p className="text-xs text-cocoa/65 mt-2 leading-relaxed">{c.d}</p></div>))}</section></Reveal><section className="text-center mt-12 pb-4"><Btn href={INSTAGRAM_DM_URL} variant="gold" size="lg" onClick={() => Analytics.track('instagram_click', { context: 'contact' })}><IconInstagram className="w-4 h-4"/>DM us on Instagram</Btn><p className="mt-3 text-[10px] tracking-[0.25em] uppercase text-cocoa/50">@{CONFIG.INSTAGRAM_USERNAME}</p></section></main>);
 }
 function Terms() {
   useSEO({ title: 'Terms & Conditions' });
-  return (
-    <main>
-      <PageHero eyebrow="The fine print" title="Terms & Conditions" subtitle="Last updated: [add date before launch]"/>
-      <Reveal><section className="max-w-2xl mx-auto px-4 prose">
-        <h2>1. Ordering</h2>
-        <ul><li>Orders can be placed through our secure checkout or by Instagram DM — @{CONFIG.INSTAGRAM_USERNAME}.</li><li>An order is final only after we confirm availability, total and payment.</li></ul>
-        <h2>2. Payment</h2>
-        <ul><li><strong>Cash on Delivery (COD) is not provided.</strong></li><li>Payment is completed through our online provider once checkout is enabled.</li><li>Orders are dispatched only after payment is received and confirmed.</li></ul>
-        <h2>3. Prices & Availability</h2>
-        <ul><li>All prices are listed in INR and may change without prior notice.</li><li>Stock shown on the website is indicative — final availability is confirmed at checkout.</li></ul>
-        <h2>4. Shipping</h2>
-        <p>Dispatch and delivery timelines are described on our <Link to="/shipping" className="text-gold underline underline-offset-4">Shipping & Delivery</Link> page.</p>
-        <h2>5. Returns & Exchanges</h2>
-        <p>Return and exchange terms are described on our <Link to="/returns" className="text-gold underline underline-offset-4">Returns & Exchange</Link> page.</p>
-        <h2>6. Product Care</h2>
-        <p>Care instructions are provided on each product page and on our <Link to="/care" className="text-gold underline underline-offset-4">Jewellery Care</Link> page.</p>
-        <h2>7. Privacy</h2>
-        <p>See our <Link to="/privacy" className="text-gold underline underline-offset-4">Privacy & Cookies</Link> page for details on what we store and why.</p>
-        <h2>8. Contact</h2>
-        <p>For any question about these terms or your order, DM us on Instagram — <strong>@{CONFIG.INSTAGRAM_USERNAME}</strong>.</p>
-      </section></Reveal>
-    </main>
-  );
+  return (<main><PageHero eyebrow="The fine print" title="Terms & Conditions" subtitle="Last updated: [add date before launch]"/><Reveal><section className="max-w-2xl mx-auto px-4 prose"><h2>1. Ordering</h2><ul><li>Orders via secure checkout or Instagram DM.</li><li>Order final only after availability + payment confirmed.</li></ul><h2>2. Payment</h2><ul><li><strong>Cash on Delivery is not provided.</strong></li><li>Payment through online provider once checkout enabled.</li><li>Dispatch after payment confirmed.</li></ul><h2>3. Prices & Availability</h2><ul><li>All prices in INR.</li><li>Stock is indicative.</li></ul><h2>4. Shipping</h2><p>See <Link to="/shipping" className="text-gold underline underline-offset-4">Shipping & Delivery</Link>.</p><h2>5. Returns</h2><p>See <Link to="/returns" className="text-gold underline underline-offset-4">Returns & Exchange</Link>.</p><h2>6. Privacy</h2><p>See <Link to="/privacy" className="text-gold underline underline-offset-4">Privacy & Cookies</Link>.</p><h2>7. Contact</h2><p>DM us on Instagram — <strong>@{CONFIG.INSTAGRAM_USERNAME}</strong>.</p></section></Reveal></main>);
 }
 function Privacy() {
   useSEO({ title: 'Privacy & Cookies' });
   const { openPreferences, consent } = useConsent();
-  return (
-    <main>
-      <PageHero eyebrow="The fine print" title="Privacy & Cookies" subtitle="What we store, why, and how you can change your choices."/>
-      <Reveal><section className="max-w-2xl mx-auto px-4 prose">
-        <h2>What we store</h2>
-        <ul>
-          <li><strong>Necessary storage</strong> — Your shopping cart, cookie-consent choice and (if you sign in) a session token. Always active; without it the site can't function.</li>
-          <li><strong>Analytics</strong> — Optional, off by default. If enabled, we may record anonymous usage patterns to improve the store.</li>
-          <li><strong>Marketing</strong> — Optional, off by default. Only used if you opt in.</li>
-        </ul>
-        <h2>Orders and accounts</h2>
-        <ul>
-          <li>Your cart lives in your own browser (localStorage) — it's not sent to our servers until you submit an order.</li>
-          <li>When you place an order, we store the details you provide (name, address, phone, email, order contents) so we can fulfil it.</li>
-          <li>Customer sign-in uses Google via Supabase. We never see your Google password.</li>
-        </ul>
-        <h2>Your choices</h2>
-        <p>You can change your consent at any time. Your current analytics consent: <strong>{consent.analytics ? 'Granted' : 'Denied'}</strong>.</p>
-        <p><button onClick={openPreferences} className="text-gold underline underline-offset-4">Open cookie preferences</button></p>
-      </section></Reveal>
-    </main>
-  );
+  return (<main><PageHero eyebrow="The fine print" title="Privacy & Cookies" subtitle="What we store, why, and how you can change your choices."/><Reveal><section className="max-w-2xl mx-auto px-4 prose"><h2>What we store</h2><ul><li><strong>Necessary:</strong> cart, consent, session.</li><li><strong>Analytics:</strong> optional, off by default.</li><li><strong>Marketing:</strong> optional, off by default.</li></ul><h2>Orders and accounts</h2><ul><li>Cart lives in your browser.</li><li>Order details stored only for fulfilment.</li><li>Sign-in uses Google via Supabase.</li></ul><h2>Your choices</h2><p>Analytics consent: <strong>{consent.analytics ? 'Granted' : 'Denied'}</strong>.</p><p><button onClick={openPreferences} className="text-gold underline underline-offset-4">Open cookie preferences</button></p></section></Reveal></main>);
 }
 function NotFound({ message = 'This page wandered off.' }) {
   useSEO({ title: 'Page Not Found' });
-  return (
-    <main className="max-w-xl mx-auto px-4 py-24 text-center fade-up">
-      <IconSparkle className="w-6 h-6 text-gold mx-auto twinkle"/>
-      <h1 className="serif text-4xl mt-6">{message}</h1>
-      <p className="text-cocoa/70 mt-3">Find your next favourite piece instead.</p>
-      <div className="mt-8 flex justify-center gap-3"><Btn to="/shop">Shop the Collection</Btn><Btn href={INSTAGRAM_DM_URL} variant="outline"><IconInstagram className="w-4 h-4"/>DM Us</Btn></div>
-    </main>
-  );
+  return (<main className="max-w-xl mx-auto px-4 py-24 text-center fade-up"><IconSparkle className="w-6 h-6 text-gold mx-auto twinkle"/><h1 className="serif text-4xl mt-6">{message}</h1><p className="text-cocoa/70 mt-3">Find your next favourite piece instead.</p><div className="mt-8 flex justify-center gap-3"><Btn to="/shop">Shop the Collection</Btn><Btn href={INSTAGRAM_DM_URL} variant="outline"><IconInstagram className="w-4 h-4"/>DM Us</Btn></div></main>);
 }
 
-/* ---------------- APP + ROUTES ---------------- */
 class ErrorBoundary extends React.Component {
   constructor(props) { super(props); this.state = { err: null }; }
   static getDerivedStateFromError(err) { return { err }; }
-  render() {
-    if (this.state.err) {
-      return (
-        <div className="min-h-screen flex items-center justify-center px-4 text-center">
-          <div>
-            <IconSparkle className="w-6 h-6 text-gold mx-auto"/>
-            <h1 className="serif text-3xl mt-4">Something went wrong.</h1>
-            <p className="text-sm text-cocoa/60 mt-2">Please refresh the page and try again.</p>
-            <div className="mt-6"><Btn onClick={() => window.location.reload()}>Refresh</Btn></div>
-          </div>
-        </div>
-      );
-    }
-    return this.props.children;
-  }
+  render() { if (this.state.err) return (<div className="min-h-screen flex items-center justify-center px-4 text-center"><div><IconSparkle className="w-6 h-6 text-gold mx-auto"/><h1 className="serif text-3xl mt-4">Something went wrong.</h1><p className="text-sm text-cocoa/60 mt-2">Please refresh.</p><div className="mt-6"><Btn onClick={() => window.location.reload()}>Refresh</Btn></div></div></div>); return this.props.children; }
 }
 function App() {
   const route = useRoute();
   const [searchOpen, setSearchOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   useEffect(() => { setSearchOpen(false); setMenuOpen(false); }, [route.path]);
-  useEffect(() => {
-    const onKey = (e) => {
-      const tag = (e.target.tagName || '').toLowerCase();
-      if (e.key === '/' && tag !== 'input' && tag !== 'textarea') { e.preventDefault(); setSearchOpen(true); }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  useEffect(() => { const onKey = (e) => { const tag = (e.target.tagName || '').toLowerCase(); if (e.key === '/' && tag !== 'input' && tag !== 'textarea') { e.preventDefault(); setSearchOpen(true); } }; window.addEventListener('keydown', onKey); return () => window.removeEventListener('keydown', onKey); }, []);
   const seg = route.path.split('/').filter(Boolean);
   let page;
   if (seg.length === 0) page = <Home/>;
@@ -1745,57 +1238,20 @@ function App() {
   else if (seg[0] === 'terms') page = <Terms/>;
   else if (seg[0] === 'privacy') page = <Privacy/>;
   else page = <NotFound/>;
-  return (
-    <div className="min-h-screen flex flex-col">
-      <Header searchOpen={searchOpen} setSearchOpen={setSearchOpen} menuOpen={menuOpen} setMenuOpen={setMenuOpen}/>
-      <div className="flex-1">{page}</div>
-      <Footer/>
-      <MenuDrawer open={menuOpen} onClose={() => setMenuOpen(false)}/>
-      <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)}/>
-      <FloatingInstagram/>
-    </div>
-  );
+  return (<div className="min-h-screen flex flex-col overflow-x-hidden"><Header searchOpen={searchOpen} setSearchOpen={setSearchOpen} menuOpen={menuOpen} setMenuOpen={setMenuOpen}/><div className="flex-1">{page}</div><Footer/><MenuDrawer open={menuOpen} onClose={() => setMenuOpen(false)}/><SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)}/><FloatingInstagram/></div>);
 }
-const Root = () => (
-  <ErrorBoundary>
-    <RouterProvider>
-      <CatalogProvider>
-        <ConsentProvider>
-          <ToastProvider>
-            <AuthProvider>
-              <CartProvider>
-                <App/>
-              </CartProvider>
-            </AuthProvider>
-          </ToastProvider>
-        </ConsentProvider>
-      </CatalogProvider>
-    </RouterProvider>
-  </ErrorBoundary>
-);
+const Root = () => (<ErrorBoundary><RouterProvider><CatalogProvider><ConsentProvider><ToastProvider><AuthProvider><CartProvider><App/></CartProvider></AuthProvider></ToastProvider></ConsentProvider></CatalogProvider></RouterProvider></ErrorBoundary>);
 ReactDOM.createRoot(document.getElementById('root')).render(<Root/>);
 </script>
 
-<!-- ==================== CDN LOADER ==================== -->
 <script>
 (function () {
   var REACT = ['https://unpkg.com/react@18.3.1/umd/react.production.min.js','https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js','https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js'];
   var REACT_DOM = ['https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js','https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js','https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js'];
   var BABEL = ['https://unpkg.com/@babel/standalone@7.24.7/babel.min.js','https://cdn.jsdelivr.net/npm/@babel/standalone@7.24.7/babel.min.js','https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js'];
   var TAILWIND = ['https://cdn.tailwindcss.com/3.4.16'];
-  function loadScript(urls, onDone) {
-    var i = 0;
-    (function next() {
-      if (i >= urls.length) return onDone(false);
-      var s = document.createElement('script');
-      s.src = urls[i++]; s.onload = function () { onDone(true); }; s.onerror = next;
-      document.head.appendChild(s);
-    })();
-  }
-  function showBootError() {
-    var ld = document.getElementById('boot-loading'); var el = document.getElementById('boot-error');
-    if (ld) ld.style.display = 'none'; if (el) el.style.display = 'flex';
-  }
+  function loadScript(urls, onDone) { var i = 0; (function next() { if (i >= urls.length) return onDone(false); var s = document.createElement('script'); s.src = urls[i++]; s.onload = function () { onDone(true); }; s.onerror = next; document.head.appendChild(s); })(); }
+  function showBootError() { var ld = document.getElementById('boot-loading'); var el = document.getElementById('boot-error'); if (ld) ld.style.display = 'none'; if (el) el.style.display = 'flex'; }
   loadScript(TAILWIND, function (okTw) {
     if (okTw && window.tailwind) { tailwind.config = { theme: { extend: { colors: { cream: '#F6EFE5', ivory: '#FFFDF9', cocoa: '#4A3B2A', gold: '#A68A5B', beige: '#DCCBB4' }, fontFamily: { serif: ['"Cormorant Garamond"', 'serif'], sans: ['Manrope', 'sans-serif'] } } } }; }
     loadScript(REACT, function (okR) {
@@ -1804,13 +1260,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(<Root/>);
         if (!okD) return showBootError();
         loadScript(BABEL, function (okB) {
           if (!okB) return showBootError();
-          try {
-            var src = document.getElementById('reviora-app').textContent;
-            var compiled = Babel.transform(src, { presets: ['react'] }).code;
-            var runner = document.createElement('script');
-            runner.text = compiled; document.body.appendChild(runner);
-            var ld = document.getElementById('boot-loading'); if (ld) ld.remove();
-          } catch (e) { console.error(e); showBootError(); }
+          try { var src = document.getElementById('reviora-app').textContent; var compiled = Babel.transform(src, { presets: ['react'] }).code; var runner = document.createElement('script'); runner.text = compiled; document.body.appendChild(runner); var ld = document.getElementById('boot-loading'); if (ld) ld.remove(); } catch (e) { console.error(e); showBootError(); }
         });
       });
     });
