@@ -45,7 +45,14 @@ const EDGE_FUNCTIONS_BASE = CONFIG.SUPABASE_URL.replace(/\/$/, '') + '/functions
 let ADMIN_SESSION = { token: null, expiresAt: 0 };
 
 const cx = (...a) => a.filter(Boolean).join(' ');
-const CATEGORIES = ['Necklaces','Earrings','Bracelets','Rings','Chains','Other Accessories'];
+const CATEGORIES = [
+  { label: 'Necklaces',         value: 'necklaces' },
+  { label: 'Earrings',          value: 'earrings' },
+  { label: 'Bracelets',         value: 'bracelets' },
+  { label: 'Rings',             value: 'rings' },
+  { label: 'Chains',            value: 'chains' },
+  { label: 'Other Accessories', value: 'other-accessories' },
+];
 const COLLECTIONS = [
   { id: 'featured',    label: 'Featured Collection' },
   { id: 'new_arrival', label: 'New Arrivals' },
@@ -321,7 +328,7 @@ function ProductForm({ initial, onCancel, onSaved }) {
             <div className="grid sm:grid-cols-2 gap-4">
               <Field label="Product name" required error={errors.name}><input className={inputCls} value={form.name} onChange={e => upd('name', e.target.value)}/></Field>
               <Field label="SKU / Model number" required error={errors.sku}><input className={inputCls} value={form.sku} onChange={e => upd('sku', e.target.value)}/></Field>
-              <Field label="Category" required><select className={inputCls} value={form.category} onChange={e => upd('category', e.target.value)}>{CATEGORIES.map(c => <option key={c}>{c}</option>)}</select></Field>
+              <Field label="Category" required><select className={inputCls} value={form.category} onChange={e => upd('category', e.target.value)}>{CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}</select></Field>
               <Field label="Subcategory"><input className={inputCls} value={form.subcategory} onChange={e => upd('subcategory', e.target.value)}/></Field>
             </div>
           </section>
