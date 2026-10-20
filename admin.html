@@ -1,47 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Reviora Admin — Dashboard</title>
-<meta name="robots" content="noindex, nofollow" />
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23A68A5B' d='M12 0C12.9 6.9 17.1 11.1 24 12C17.1 12.9 12.9 17.1 12 24C11.1 17.1 6.9 12.9 0 12C6.9 11.1 11.1 6.9 12 0Z'/%3E%3C/svg%3E" />
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-<style>
-  html{scroll-behavior:smooth}
-  body{background:#F6EFE5;color:#4A3B2A;font-family:Manrope,system-ui,sans-serif;-webkit-font-smoothing:antialiased;margin:0}
-  .serif{font-family:'Cormorant Garamond',Georgia,serif}
-  ::selection{background:rgba(166,138,91,.25)}
-  :focus-visible{outline:2px solid #A68A5B;outline-offset:2px;border-radius:4px}
-  @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-  .fade-up{animation:fadeUp .45s ease both}
-  .skeleton{background:linear-gradient(110deg,#EDE3D2 30%,#F7F1E6 50%,#EDE3D2 70%);background-size:200% 100%;animation:sk 1.4s linear infinite}
-  @keyframes sk{to{background-position:-200% 0}}
-</style>
-</head>
-<body>
-<noscript><p style="padding:2rem;text-align:center">Reviora Admin — please enable JavaScript.</p></noscript>
-<div id="admin-root">
-  <div id="admin-boot" style="min-height:70vh;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',Georgia,serif;font-size:22px;letter-spacing:.35em;color:#4A3B2A">ADMIN&nbsp;·&nbsp;LOADING…</div>
-</div>
 
-<script type="text/reviora-admin" id="reviora-admin">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reviora Admin — Dashboard</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23A68A5B' d='M12 0C12.9 6.9 17.1 11.1 24 12C17.1 12.9 12.9 17.1 12 24C11.1 17.1 6.9 12.9 0 12C6.9 11.1 11.1 6.9 12 0Z'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <style>
+    html {
+      scroll-behavior: smooth
+    }
+
+    body {
+      background: #F6EFE5;
+      color: #4A3B2A;
+      font-family: Manrope, system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      margin: 0
+    }
+
+    .serif {
+      font-family: 'Cormorant Garamond', Georgia, serif
+    }
+
+    ::selection {
+      background: rgba(166, 138, 91, .25)
+    }
+
+    :focus-visible {
+      outline: 2px solid #A68A5B;
+      outline-offset: 2px;
+      border-radius: 4px
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(14px)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    .fade-up {
+      animation: fadeUp .45s ease both
+    }
+
+    .skeleton {
+      background: linear-gradient(110deg, #EDE3D2 30%, #F7F1E6 50%, #EDE3D2 70%);
+      background-size: 200% 100%;
+      animation: sk 1.4s linear infinite
+    }
+
+    @keyframes sk {
+      to {
+        background-position: -200% 0
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <noscript>
+    <p style="padding:2rem;text-align:center">Reviora Admin — please enable JavaScript.</p>
+  </noscript>
+  <div id="admin-root"></div>
+
+  <script type="text/reviora-admin" id="reviora-admin">
 const { useState, useEffect, useMemo, useRef, useContext, createContext } = React;
 
-/* ============================================================
-   CONFIG — fill in your Supabase project URL + publishable key
-   ============================================================ */
 const CONFIG = {
   SUPABASE_URL: 'https://hdehdkofypgjiaakbzoz.supabase.co',
-  /* REPLACE: Supabase Dashboard → Project Settings → API → "Publishable key" (sb_publishable_...) */
   SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_4dviwRWhXlVF9-6X7LR57A_SJHy3NNZ',
   STORAGE_BUCKET: 'product-images',
 };
 const EDGE_FUNCTIONS_BASE = CONFIG.SUPABASE_URL.replace(/\/$/, '') + '/functions/v1';
 
-/* In-memory-only session token — never written to localStorage/sessionStorage */
 let ADMIN_SESSION = { token: null, expiresAt: 0 };
 
 const cx = (...a) => a.filter(Boolean).join(' ');
@@ -93,6 +137,8 @@ const IconTrash = ({ className = 'w-4 h-4' }) => (<svg viewBox="0 0 24 24" class
 const IconEye = ({ className = 'w-4 h-4' }) => (<svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>);
 const IconUp = ({ className = 'w-4 h-4' }) => (<svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>);
 const IconDown = ({ className = 'w-4 h-4' }) => (<svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7"/></svg>);
+const IconInbox = ({ className = 'w-4 h-4' }) => (<svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11Z"/></svg>);
+const IconCheck = ({ className = 'w-4 h-4' }) => (<svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>);
 
 function Btn({ onClick, variant = 'primary', size = 'md', className, children, disabled, type = 'button', ariaLabel, href }) {
   const base = 'inline-flex items-center justify-center gap-2 rounded-full font-semibold tracking-[0.18em] uppercase transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.97]';
@@ -164,13 +210,110 @@ function LoginScreen() {
   );
 }
 
+/* ---------------- INBOX ---------------- */
+function Inbox({ onUnseenCount }) {
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [marking, setMarking] = useState(null);
+
+  const reload = async () => {
+    setLoading(true); setError('');
+    try {
+      const r = await AdminAPI.call('admin-orders-list', {});
+      const list = r.orders || [];
+      setOrders(list);
+      if (onUnseenCount) onUnseenCount(list.filter(o => !o.seen_by_admin).length);
+    } catch (e) { setError(e.message); }
+    finally { setLoading(false); }
+  };
+  useEffect(() => { reload(); }, []);
+
+  const markSeen = async (orderId) => {
+    setMarking(orderId);
+    try {
+      await AdminAPI.call('admin-orders-mark-seen', { order_id: orderId });
+      await reload();
+    } catch (e) { alert(e.message); }
+    finally { setMarking(null); }
+  };
+
+  const fmt = (n) => '₹' + new Intl.NumberFormat('en-IN').format(Math.round(Number(n) * 100) / 100);
+  const fmtDate = (s) => s ? new Date(s).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+
+  if (loading) return (<div className="space-y-2">{Array.from({length:4}).map((_,i)=><div key={i} className="h-20 rounded-xl skeleton"/>)}</div>);
+  if (error) return (<div className="rounded-2xl border border-red-300 bg-red-50 p-4 text-sm text-red-800">{error}</div>);
+  if (orders.length === 0) return (<div className="text-center py-20 border border-dashed border-beige rounded-3xl"><IconInbox className="w-6 h-6 text-gold mx-auto"/><p className="serif text-2xl mt-4">No orders yet.</p><p className="text-sm text-cocoa/60 mt-2">New customer orders will appear here.</p></div>);
+
+  return (
+    <div className="space-y-4">
+      {orders.map(o => {
+        const unseen = !o.seen_by_admin;
+        const items = o.order_items || [];
+        return (
+          <div key={o.id} className={cx('rounded-2xl border bg-ivory overflow-hidden transition-all', unseen ? 'border-gold/60 shadow-md shadow-gold/10' : 'border-beige')}>
+            <div className="flex flex-wrap items-center gap-3 p-4 border-b border-beige/60">
+              <div className="flex items-center gap-2">
+                {unseen && <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse"/>}
+                <span className="serif text-lg">{o.order_number}</span>
+              </div>
+              <span className="text-[10px] tracking-[0.18em] uppercase text-cocoa/50">{fmtDate(o.created_at)}</span>
+              <div className="ml-auto flex items-center gap-2">
+                <span className={cx('px-2.5 py-1 rounded-full text-[9px] font-bold tracking-[0.15em] uppercase',
+                  o.payment_status === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800')}>
+                  {o.payment_status}
+                </span>
+                <span className={cx('px-2.5 py-1 rounded-full text-[9px] font-bold tracking-[0.15em] uppercase',
+                  o.order_status === 'delivered' ? 'bg-green-100 text-green-800' :
+                  o.order_status === 'cancelled' ? 'bg-red-100 text-red-800' : 'bg-cocoa/10 text-cocoa')}>
+                  {o.order_status}
+                </span>
+                {unseen && (
+                  <button onClick={() => markSeen(o.id)} disabled={marking === o.id}
+                    className="ml-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gold text-ivory text-[9px] font-bold tracking-[0.15em] uppercase hover:bg-cocoa transition-colors disabled:opacity-50">
+                    <IconCheck className="w-3 h-3"/>{marking === o.id ? 'Marking…' : 'Mark seen'}
+                  </button>
+                )}
+              </div>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-4 p-4">
+              <div>
+                <p className="text-[10px] tracking-[0.2em] uppercase text-cocoa/50 mb-2">Customer</p>
+                <p className="text-sm font-medium">{o.customer_name}</p>
+                <p className="text-xs text-cocoa/70 mt-1">{o.phone}{o.email ? ' · ' + o.email : ''}</p>
+                <p className="text-xs text-cocoa/60 mt-1 leading-relaxed">{o.address_line}, {o.city}, {o.state} {o.postal_code}, {o.country}</p>
+              </div>
+              <div>
+                <p className="text-[10px] tracking-[0.2em] uppercase text-cocoa/50 mb-2">Items ({items.length})</p>
+                <ul className="text-xs space-y-1">
+                  {items.map((it, i) => (
+                    <li key={i} className="flex justify-between gap-2">
+                      <span className="truncate">{it.product_name} <span className="text-cocoa/50">× {it.quantity}</span></span>
+                      <span className="shrink-0">{fmt(it.line_total)}</span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-2 pt-2 border-t border-beige/60 flex justify-between text-sm">
+                  <span className="text-[10px] tracking-[0.2em] uppercase text-cocoa/60">Total</span>
+                  <span className="serif text-base">{fmt(o.total)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function Dashboard() {
   const { logout } = useAdminAuth();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [view, setView] = useState('list');
+  const [view, setView] = useState('products');
   const [editing, setEditing] = useState(null);
+  const [unseenCount, setUnseenCount] = useState(0);
 
   const reload = async () => {
     setLoading(true); setError('');
@@ -181,6 +324,20 @@ function Dashboard() {
     finally { setLoading(false); }
   };
   useEffect(() => { reload(); }, []);
+
+  // Poll unseen orders count every 30s regardless of current tab
+  useEffect(() => {
+    let alive = true;
+    const fetchCount = async () => {
+      try {
+        const r = await AdminAPI.call('admin-orders-list', {});
+        if (alive) setUnseenCount(r.unseen_count || 0);
+      } catch (e) {}
+    };
+    fetchCount();
+    const t = setInterval(fetchCount, 30_000);
+    return () => { alive = false; clearInterval(t); };
+  }, []);
 
   const onDelete = async (product) => {
     if (!window.confirm(`Delete "${product.name}" permanently? This cannot be undone.`)) return;
@@ -209,9 +366,36 @@ function Dashboard() {
             <Btn variant="outline" size="sm" onClick={logout}>Sign out</Btn>
           </div>
         </div>
+        {/* Nav tabs */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center gap-1 border-t border-beige/60">
+          <button onClick={() => { setView('products'); setEditing(null); }}
+            className={cx('px-4 py-3 text-[10px] font-bold tracking-[0.2em] uppercase transition-colors border-b-2',
+              view === 'products' || view === 'new' || view === 'edit' ? 'text-gold border-gold' : 'text-cocoa/60 hover:text-cocoa border-transparent')}>
+            Products
+          </button>
+          <button onClick={() => { setView('inbox'); setEditing(null); }}
+            className={cx('relative px-4 py-3 text-[10px] font-bold tracking-[0.2em] uppercase transition-colors border-b-2 flex items-center gap-2',
+              view === 'inbox' ? 'text-gold border-gold' : 'text-cocoa/60 hover:text-cocoa border-transparent')}>
+            Inbox
+            {unseenCount > 0 && (
+              <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-600 text-ivory text-[9px] font-bold">
+                {unseenCount > 99 ? '99+' : unseenCount}
+              </span>
+            )}
+          </button>
+        </div>
       </header>
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-        {view === 'list' && (<>
+        {view === 'inbox' && (
+          <>
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+              <div><h1 className="serif text-3xl">Inbox</h1><p className="text-xs text-cocoa/65 mt-1">Customer orders. Unseen orders are highlighted with a gold border.</p></div>
+            </div>
+            <Inbox onUnseenCount={setUnseenCount}/>
+          </>
+        )}
+
+        {(view === 'products' || view === 'new' || view === 'edit') && view === 'products' && (<>
           <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
             <div><h1 className="serif text-3xl">Products</h1><p className="text-xs text-cocoa/65 mt-1">Manage the catalogue. Unlisted items are hidden from the public site immediately.</p></div>
             <Btn variant="gold" onClick={() => { setEditing(null); setView('new'); }}><IconPlus/>Add Product</Btn>
@@ -246,7 +430,8 @@ function Dashboard() {
               </div>
             )}
         </>)}
-        {(view === 'new' || view === 'edit') && (<ProductForm initial={editing} onCancel={() => { setEditing(null); setView('list'); }} onSaved={() => { setEditing(null); setView('list'); reload(); }}/>)}
+
+        {(view === 'new' || view === 'edit') && (<ProductForm initial={editing} onCancel={() => { setEditing(null); setView('products'); }} onSaved={() => { setEditing(null); setView('products'); reload(); }}/>)}
       </main>
     </div>
   );
@@ -255,7 +440,7 @@ function Dashboard() {
 function ProductForm({ initial, onCancel, onSaved }) {
   const isEdit = !!initial;
   const [form, setForm] = useState({
-    name: initial?.name || '', sku: initial?.sku || '', category: initial?.category || CATEGORIES[0], subcategory: initial?.subcategory || '',
+    name: initial?.name || '', sku: initial?.sku || '', category: initial?.category || CATEGORIES[0].value, subcategory: initial?.subcategory || '',
     price: initial?.price ?? '', sale_price: initial?.sale_price ?? '', availability: initial?.availability || 'in_stock', stock: initial?.stock ?? '',
     description: initial?.description || '', material: initial?.material || '', care: initial?.care || '',
     collection_type: initial?.collection_type || 'regular', published: initial?.published !== false,
@@ -383,41 +568,41 @@ function AdminRoot() { return (<ErrorBoundary><AuthProvider><Shell/></AuthProvid
 ReactDOM.createRoot(document.getElementById('admin-root')).render(<AdminRoot/>);
 </script>
 
-<script>
-(function () {
-  var REACT = ['https://unpkg.com/react@18.3.1/umd/react.production.min.js','https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js','https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js'];
-  var REACT_DOM = ['https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js','https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js','https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js'];
-  var BABEL = ['https://unpkg.com/@babel/standalone@7.24.7/babel.min.js','https://cdn.jsdelivr.net/npm/@babel/standalone@7.24.7/babel.min.js','https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js'];
-  var TAILWIND = ['https://cdn.tailwindcss.com/3.4.16'];
-  function loadScript(urls, onDone) {
-    var i = 0;
-    (function next() {
-      if (i >= urls.length) return onDone(false);
-      var s = document.createElement('script');
-      s.src = urls[i++]; s.onload = function () { onDone(true); }; s.onerror = next;
-      document.head.appendChild(s);
-    })();
-  }
-  loadScript(TAILWIND, function (okTw) {
-    if (okTw && window.tailwind) { tailwind.config = { theme: { extend: { colors: { cream: '#F6EFE5', ivory: '#FFFDF9', cocoa: '#4A3B2A', gold: '#A68A5B', beige: '#DCCBB4' }, fontFamily: { serif: ['"Cormorant Garamond"', 'serif'], sans: ['Manrope', 'sans-serif'] } } } }; }
-    loadScript(REACT, function (okR) {
-      if (!okR) return;
-      loadScript(REACT_DOM, function (okD) {
-        if (!okD) return;
-        loadScript(BABEL, function (okB) {
-          if (!okB) return;
-          try {
-            var src = document.getElementById('reviora-admin').textContent;
-            var compiled = Babel.transform(src, { presets: ['react'] }).code;
-            var runner = document.createElement('script');
-            runner.text = compiled; document.body.appendChild(runner);
-            var boot = document.getElementById('admin-boot'); if (boot) boot.remove();
-          } catch (e) { console.error(e); }
+  <script>
+    (function () {
+      var REACT = ['https://unpkg.com/react@18.3.1/umd/react.production.min.js', 'https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js'];
+      var REACT_DOM = ['https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js', 'https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js'];
+      var BABEL = ['https://unpkg.com/@babel/standalone@7.24.7/babel.min.js', 'https://cdn.jsdelivr.net/npm/@babel/standalone@7.24.7/babel.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js'];
+      var TAILWIND = ['https://cdn.tailwindcss.com/3.4.16'];
+      function loadScript(urls, onDone) {
+        var i = 0;
+        (function next() {
+          if (i >= urls.length) return onDone(false);
+          var s = document.createElement('script');
+          s.src = urls[i++]; s.onload = function () { onDone(true); }; s.onerror = next;
+          document.head.appendChild(s);
+        })();
+      }
+      loadScript(TAILWIND, function (okTw) {
+        if (okTw && window.tailwind) { tailwind.config = { theme: { extend: { colors: { cream: '#F6EFE5', ivory: '#FFFDF9', cocoa: '#4A3B2A', gold: '#A68A5B', beige: '#DCCBB4' }, fontFamily: { serif: ['"Cormorant Garamond"', 'serif'], sans: ['Manrope', 'sans-serif'] } } } }; }
+        loadScript(REACT, function (okR) {
+          if (!okR) return;
+          loadScript(REACT_DOM, function (okD) {
+            if (!okD) return;
+            loadScript(BABEL, function (okB) {
+              if (!okB) return;
+              try {
+                var src = document.getElementById('reviora-admin').textContent;
+                var compiled = Babel.transform(src, { presets: ['react'] }).code;
+                var runner = document.createElement('script');
+                runner.text = compiled; document.body.appendChild(runner);
+              } catch (e) { console.error(e); }
+            });
+          });
         });
       });
-    });
-  });
-})();
-</script>
+    })();
+  </script>
 </body>
+
 </html>
