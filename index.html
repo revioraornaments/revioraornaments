@@ -18,6 +18,7 @@
   :focus-visible { outline: 2px solid #A68A5B; outline-offset: 2px; border-radius: 4px; }
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { scrollbar-width: none; }
+  header.sticky { position: -webkit-sticky; position: sticky; top: 0; z-index: 50; }
   @keyframes sk { to { background-position: -200% 0; } }
   .skeleton { background: linear-gradient(110deg, #EDE3D2 30%, #F7F1E6 50%, #EDE3D2 70%); background-size: 200% 100%; animation: sk 1.4s linear infinite; }
   @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
@@ -26,7 +27,6 @@
   .twinkle { animation: twinkle 3.4s ease-in-out infinite; }
   @keyframes floaty { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-16px); } }
   .floaty { animation: floaty 8s ease-in-out infinite; }
-  .floaty-slow { animation: floaty 11s ease-in-out infinite; }
   @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
   .shimmer-text { background: linear-gradient(90deg, rgba(255, 253, 249, .75) 30%, #fff 50%, rgba(255, 253, 249, .75) 70%); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: shimmer 5s linear infinite; }
   .reveal { opacity: 0; transform: translateY(26px); transition: opacity .75s cubic-bezier(.2, .6, .2, 1), transform .75s cubic-bezier(.2, .6, .2, 1); }
@@ -300,11 +300,10 @@ function CartProvider({ children }) {
   const [open, setOpen] = useState(false);
   const [raw, setRaw] = useState(() => { try { return JSON.parse(localStorage.getItem('reviora_cart_v2') || '[]'); } catch (e) { return []; } });
   const { products } = useCatalog();
-  const { user } = useAuth(); // ADDED FOR SYNC
+  const { user } = useAuth();
   
   useEffect(() => { try { localStorage.setItem('reviora_cart_v2', JSON.stringify(raw)); } catch (e) {} }, [raw]);
 
-  // Sync with Supabase when user logs in
   useEffect(() => {
     const sb = getSupabaseClient();
     if (!sb || !user) return;
@@ -320,7 +319,6 @@ function CartProvider({ children }) {
         });
         setRaw(mergedRaw);
       }
-      // Push merged back to DB
       if (mergedRaw.length > 0) {
         const upsertData = mergedRaw.map(i => ({ user_id: user.id, product_id: i.id, quantity: i.qty }));
         await sb.from('user_carts').upsert(upsertData);
@@ -705,13 +703,11 @@ function Chatbot() {
       const res = await fetch(CONFIG.WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMsg }) // Adjust based on n8n config
+        body: JSON.stringify({ message: userMsg })
       });
       const data = await res.json();
       
-      // Adjust this based on how n8n replies (e.g., data[0].text or data.output)
       const aiText = data.output || data.text || data.response || (Array.isArray(data) ? data[0].text : 'Sorry, I encountered an error.');
-      
       setMessages(prev => [...prev, { role: 'ai', text: aiText }]);
     } catch (err) {
       setMessages(prev => [...prev, { role: 'ai', text: 'Connection error. Please try again later.' }]);
@@ -758,7 +754,7 @@ function Chatbot() {
               )}
               <div ref={endRef}/>
             </div>
-            <form onSubmit={sendMessage} className="flex gap-2">
+            <form onSubmit={sendMessage} className="flex gap-2 shrink-0">
               <input 
                 type="text" 
                 value={input} 
@@ -766,7 +762,7 @@ function Chatbot() {
                 placeholder="Ask about shipping, returns, or jewellery..."
                 className="flex-1 bg-cream/50 border border-beige rounded-full px-4 py-2.5 text-sm outline-none focus:border-gold"
               />
-              <button type="submit" disabled={loading || !input.trim()} className="w-10 h-10 rounded-full bg-gold text-ivory flex items-center justify-center disabled:opacity-50 hover:bg-cocoa transition-colors">
+              <button type="submit" disabled={loading || !input.trim()} className="w-10 h-10 shrink-0 rounded-full bg-gold text-ivory flex items-center justify-center disabled:opacity-50 hover:bg-cocoa transition-colors">
                 <IconArrow className="w-4 h-4"/>
               </button>
             </form>
@@ -776,7 +772,7 @@ function Chatbot() {
     </div>
   );
 }
-
+function FloatingInstagram() { return (<a href={INSTAGRAM_DM_URL} target="_blank" rel="noopener noreferrer" aria-label={`DM Reviora on Instagram — @${CONFIG.INSTAGRAM_USERNAME}`} onClick={() => Analytics.track('instagram_click', { context: 'floating' })} className="fixed bottom-5 right-5 z-40 w-12 h-12 flex items-center justify-center rounded-full bg-cocoa text-ivory shadow-lg hover:bg-gold hover:scale-110 transition-all duration-300"><IconInstagram className="w-6 h-6"/></a>); }
 function Footer() {
   const { openPreferences } = useConsent();
   const col = 'space-y-2.5';
