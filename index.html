@@ -1,343 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Reviora Ornaments — Small details. Big style.</title>
-  <meta name="description"
-    content="Reviora Ornaments — minimal jewellery & ornaments for women. Order via Instagram DM @revioraornaments." />
-  <meta name="robots" content="index, follow" />
-  <meta name="theme-color" content="#FFFDF9" />
-  <link rel="icon" type="image/png" href="./reviora.png" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Manrope:wght@300;400;500;600;700&display=swap"
-    rel="stylesheet" />
-  <style>
-    html,
-    body {
-      overflow-x: hidden;
-      max-width: 100vw
-    }
-
-    html {
-      scroll-behavior: smooth
-    }
-
-    body {
-      background: #F6EFE5;
-      color: #4A3B2A;
-      font-family: Manrope, system-ui, sans-serif;
-      -webkit-font-smoothing: antialiased
-    }
-
-    #root {
-      overflow-x: hidden;
-      max-width: 100vw
-    }
-
-    .serif {
-      font-family: 'Cormorant Garamond', Georgia, serif
-    }
-
-    ::selection {
-      background: rgba(166, 138, 91, .25)
-    }
-
-    :focus-visible {
-      outline: 2px solid #A68A5B;
-      outline-offset: 2px;
-      border-radius: 4px
-    }
-
-    .no-scrollbar::-webkit-scrollbar {
-      display: none
-    }
-
-    .no-scrollbar {
-      scrollbar-width: none
-    }
-
-    @keyframes sk {
-      to {
-        background-position: -200% 0
-      }
-    }
-
-    .skeleton {
-      background: linear-gradient(110deg, #EDE3D2 30%, #F7F1E6 50%, #EDE3D2 70%);
-      background-size: 200% 100%;
-      animation: sk 1.4s linear infinite
-    }
-
-    @keyframes fadeUp {
-      from {
-        opacity: 0;
-        transform: translateY(14px)
-      }
-
-      to {
-        opacity: 1;
-        transform: none
-      }
-    }
-
-    .fade-up {
-      animation: fadeUp .55s ease both
-    }
-
-    @keyframes twinkle {
-
-      0%,
-      100% {
-        opacity: .35
-      }
-
-      50% {
-        opacity: 1
-      }
-    }
-
-    .twinkle {
-      animation: twinkle 3.4s ease-in-out infinite
-    }
-
-    @keyframes floaty {
-
-      0%,
-      100% {
-        transform: translateY(0)
-      }
-
-      50% {
-        transform: translateY(-16px)
-      }
-    }
-
-    .floaty {
-      animation: floaty 8s ease-in-out infinite
-    }
-
-    .floaty-slow {
-      animation: floaty 11s ease-in-out infinite
-    }
-
-    @keyframes shimmer {
-      0% {
-        background-position: -200% 0
-      }
-
-      100% {
-        background-position: 200% 0
-      }
-    }
-
-    .shimmer-text {
-      background: linear-gradient(90deg, rgba(255, 253, 249, .75) 30%, #fff 50%, rgba(255, 253, 249, .75) 70%);
-      background-size: 200% 100%;
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      animation: shimmer 5s linear infinite
-    }
-
-    .reveal {
-      opacity: 0;
-      transform: translateY(26px);
-      transition: opacity .75s cubic-bezier(.2, .6, .2, 1), transform .75s cubic-bezier(.2, .6, .2, 1)
-    }
-
-    .reveal.is-visible {
-      opacity: 1;
-      transform: none
-    }
-
-    .hero-scrub-wrap {
-      position: absolute;
-      inset: 0;
-      overflow: hidden;
-      pointer-events: none;
-      z-index: 0
-    }
-
-    .hero-scrub-img {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center;
-      opacity: 0;
-      will-change: opacity;
-      transition: opacity .18s ease
-    }
-
-    .hero-content-z {
-      position: relative;
-      z-index: 2
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .reveal {
-        opacity: 1;
-        transform: none;
-        transition: none
-      }
-
-      .twinkle,
-      .floaty,
-      .floaty-slow {
-        animation: none
-      }
-
-      .hero-scrub-img {
-        transition: none
-      }
-    }
-
-    .zoom-img {
-      transition: transform .8s cubic-bezier(.2, .6, .2, 1)
-    }
-
-    .zoom-hover:hover .zoom-img {
-      transform: scale(1.14)
-    }
-
-    .zoom-hover {
-      cursor: zoom-in
-    }
-
-    .prose p {
-      margin: 0 0 1rem;
-      line-height: 1.85;
-      color: #5b4a36
-    }
-
-    .prose ul {
-      margin: 0 0 1.25rem;
-      padding: 0;
-      list-style: none
-    }
-
-    .prose li {
-      position: relative;
-      padding-left: 1.35rem;
-      margin-bottom: .65rem;
-      line-height: 1.75;
-      color: #5b4a36
-    }
-
-    .prose li::before {
-      content: '✦';
-      position: absolute;
-      left: 0;
-      top: .1rem;
-      color: #A68A5B;
-      font-size: .7rem
-    }
-
-    .prose h2 {
-      font-family: 'Cormorant Garamond', serif;
-      font-weight: 600;
-      font-size: 1.7rem;
-      color: #4A3B2A;
-      margin: 2.25rem 0 .75rem
-    }
-
-    .prose h3 {
-      font-family: 'Cormorant Garamond', serif;
-      font-weight: 600;
-      font-size: 1.25rem;
-      color: #4A3B2A;
-      margin: 1.5rem 0 .5rem
-    }
-
-    .prose strong {
-      color: #4A3B2A
-    }
-
-    .prose a {
-      color: #A68A5B;
-      text-decoration: underline;
-      text-underline-offset: 4px
-    }
-
-    .row-desktop-wrap {
-      position: relative
-    }
-
-    .row-desktop-track {
-      display: none
-    }
-
-    @media (min-width:768px) {
-      .row-desktop-track {
-        display: flex;
-        overflow-x: auto;
-        scroll-snap-type: x mandatory;
-        scroll-behavior: smooth;
-        gap: 1.5rem
-      }
-
-      .row-desktop-track>* {
-        flex: 0 0 calc((100% - 3*1.5rem)/4);
-        scroll-snap-align: start
-      }
-    }
-
-    .row-mobile-track {
-      display: flex;
-      gap: 1rem;
-      overflow-x: auto;
-      scroll-snap-type: x mandatory;
-      scroll-behavior: smooth;
-      -webkit-overflow-scrolling: touch
-    }
-
-    .row-mobile-track>* {
-      flex: 0 0 68%;
-      scroll-snap-align: start
-    }
-
-    @media (min-width:640px) {
-      .row-mobile-track>* {
-        flex: 0 0 45%
-      }
-    }
-
-    @media (min-width:768px) {
-      .row-mobile-track {
-        display: none
-      }
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Reviora Ornaments — Small details. Big style.</title>
+<meta name="description" content="Reviora Ornaments — minimal jewellery & ornaments for women." />
+<link rel="icon" type="image/png" href="./reviora.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  html, body { max-width: 100vw; overflow-x: clip; }
+  html { scroll-behavior: smooth; }
+  body { background: #F6EFE5; color: #4A3B2A; font-family: Manrope, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  .serif { font-family: 'Cormorant Garamond', Georgia, serif; }
+  ::selection { background: rgba(166, 138, 91, .25); }
+  :focus-visible { outline: 2px solid #A68A5B; outline-offset: 2px; border-radius: 4px; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { scrollbar-width: none; }
+  @keyframes sk { to { background-position: -200% 0; } }
+  .skeleton { background: linear-gradient(110deg, #EDE3D2 30%, #F7F1E6 50%, #EDE3D2 70%); background-size: 200% 100%; animation: sk 1.4s linear infinite; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  .fade-up { animation: fadeUp .55s ease both; }
+  @keyframes twinkle { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
+  .twinkle { animation: twinkle 3.4s ease-in-out infinite; }
+  @keyframes floaty { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-16px); } }
+  .floaty { animation: floaty 8s ease-in-out infinite; }
+  .floaty-slow { animation: floaty 11s ease-in-out infinite; }
+  @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+  .shimmer-text { background: linear-gradient(90deg, rgba(255, 253, 249, .75) 30%, #fff 50%, rgba(255, 253, 249, .75) 70%); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: shimmer 5s linear infinite; }
+  .reveal { opacity: 0; transform: translateY(26px); transition: opacity .75s cubic-bezier(.2, .6, .2, 1), transform .75s cubic-bezier(.2, .6, .2, 1); }
+  .reveal.is-visible { opacity: 1; transform: none; }
+  .hero-scrub-wrap { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+  .hero-scrub-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; opacity: 0; will-change: opacity; transition: opacity .18s ease; }
+  .hero-content-z { position: relative; z-index: 2; }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1; transform: none; transition: none; }
+    .twinkle, .floaty, .floaty-slow { animation: none; }
+    .hero-scrub-img { transition: none; }
+  }
+  .zoom-img { transition: transform .8s cubic-bezier(.2, .6, .2, 1); }
+  .zoom-hover:hover .zoom-img { transform: scale(1.14); }
+  .zoom-hover { cursor: zoom-in; }
+  .prose p { margin: 0 0 1rem; line-height: 1.85; color: #5b4a36; }
+  .prose ul { margin: 0 0 1.25rem; padding: 0; list-style: none; }
+  .prose li { position: relative; padding-left: 1.35rem; margin-bottom: .65rem; line-height: 1.75; color: #5b4a36; }
+  .prose li::before { content: '✦'; position: absolute; left: 0; top: .1rem; color: #A68A5B; font-size: .7rem; }
+  .prose h2 { font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: 1.7rem; color: #4A3B2A; margin: 2.25rem 0 .75rem; }
+  .prose strong { color: #4A3B2A; }
+  .prose a { color: #A68A5B; text-decoration: underline; text-underline-offset: 4px; }
+  .row-desktop-track { display: none; }
+  @media (min-width:768px) {
+    .row-desktop-track { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; gap: 1.5rem; }
+    .row-desktop-track > * { flex: 0 0 calc((100% - 3*1.5rem)/4); scroll-snap-align: start; }
+  }
+  .row-mobile-track { display: flex; gap: 1rem; overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
+  .row-mobile-track > * { flex: 0 0 68%; scroll-snap-align: start; }
+  @media (min-width:640px) { .row-mobile-track > * { flex: 0 0 45%; } }
+  @media (min-width:768px) { .row-mobile-track { display: none; } }
+</style>
 </head>
-
 <body>
-  <noscript>
-    <p style="padding:2rem;text-align:center">Reviora Ornaments — please enable JavaScript. Find us on Instagram:
-      @revioraornaments</p>
-  </noscript>
-  <div id="root"></div>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-  <script type="text/reviora-app" id="reviora-app">
+<noscript><p style="padding:2rem;text-align:center">Reviora Ornaments — please enable JavaScript.</p></noscript>
+<div id="root"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script type="text/reviora-app" id="reviora-app">
 const { useState, useEffect, useMemo, useRef, useContext, createContext } = React;
 
 const CONFIG = {
   SUPABASE_URL: 'https://hdehdkofypgjiaakbzoz.supabase.co',
   SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_4dviwRWhXlVF9-6X7LR57A_SJHy3NNZ',
   INSTAGRAM_USERNAME: 'revioraornaments',
+  FACEBOOK_URL: 'https://www.facebook.com/profile.php?id=61595692919301',
   WHATSAPP_NUMBER: '',
+  UPI_ID: '9691911547@fam',
   COOKIE_POLICY_VERSION: '1.0',
+  // PASTE YOUR N8N RENDER WEBHOOK URL HERE
+  WEBHOOK_URL: 'https://YOUR-RENDER-URL.onrender.com/webhook/chat',
 };
 const EDGE_FUNCTIONS_BASE = CONFIG.SUPABASE_URL.replace(/\/$/, '') + '/functions/v1';
 const INSTAGRAM_PROFILE_URL = `https://www.instagram.com/${CONFIG.INSTAGRAM_USERNAME}/`;
 const INSTAGRAM_DM_URL      = `https://ig.me/m/${CONFIG.INSTAGRAM_USERNAME}`;
 const SITE_NAME = 'Reviora Ornaments';
 const DEFAULT_TITLE = 'Reviora Ornaments — Small details. Big style.';
-const DEFAULT_DESCRIPTION = 'Minimal jewellery & ornaments for women. Order via Instagram DM @revioraornaments.';
+const DEFAULT_DESCRIPTION = 'Minimal jewellery & ornaments for women.';
 const CURRENCY = '₹';
 const formatPrice = (n) => CURRENCY + new Intl.NumberFormat('en-IN').format(Math.round(n * 100) / 100);
 const cx = (...a) => a.filter(Boolean).join(' ');
@@ -356,10 +102,12 @@ const SupabaseREST = {
 };
 const EdgeAPI = {
   isConfigured() { return SupabaseREST.isConfigured(); },
-  async call(name, body = {}) {
+  async call(name, body = {}, opts = {}) {
     if (!this.isConfigured()) throw new Error('Supabase not configured');
     const url = `${EDGE_FUNCTIONS_BASE}/${name}`;
-    const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: CONFIG.SUPABASE_PUBLISHABLE_KEY, Authorization: `Bearer ${CONFIG.SUPABASE_PUBLISHABLE_KEY}` }, body: JSON.stringify(body) });
+    const headers = { 'Content-Type': 'application/json', apikey: CONFIG.SUPABASE_PUBLISHABLE_KEY };
+    if (opts.userToken) headers.Authorization = `Bearer ${opts.userToken}`;
+    const res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.error || `Edge function ${name} failed (${res.status})`);
     return data;
@@ -552,7 +300,35 @@ function CartProvider({ children }) {
   const [open, setOpen] = useState(false);
   const [raw, setRaw] = useState(() => { try { return JSON.parse(localStorage.getItem('reviora_cart_v2') || '[]'); } catch (e) { return []; } });
   const { products } = useCatalog();
+  const { user } = useAuth(); // ADDED FOR SYNC
+  
   useEffect(() => { try { localStorage.setItem('reviora_cart_v2', JSON.stringify(raw)); } catch (e) {} }, [raw]);
+
+  // Sync with Supabase when user logs in
+  useEffect(() => {
+    const sb = getSupabaseClient();
+    if (!sb || !user) return;
+    const syncCart = async () => {
+      const { data, error } = await sb.from('user_carts').select('*').eq('user_id', user.id);
+      if (error) { console.error('Cart sync error', error); return; }
+      let mergedRaw = [...raw];
+      if (data && data.length > 0) {
+        data.forEach(dbItem => {
+          const existing = mergedRaw.find(i => i.id === dbItem.product_id);
+          if (existing) existing.qty = Math.max(existing.qty, dbItem.quantity);
+          else mergedRaw.push({ id: dbItem.product_id, qty: dbItem.quantity });
+        });
+        setRaw(mergedRaw);
+      }
+      // Push merged back to DB
+      if (mergedRaw.length > 0) {
+        const upsertData = mergedRaw.map(i => ({ user_id: user.id, product_id: i.id, quantity: i.qty }));
+        await sb.from('user_carts').upsert(upsertData);
+      }
+    };
+    syncCart();
+  }, [user]);
+
   const items = useMemo(() => raw.map(r => { const p = products.find(pp => pp.id === r.id); if (!p) return null; const qty = Math.max(1, Math.min(r.qty, maxQtyFor(p))); return { ...p, qty, lineTotal: effectivePrice(p) * qty }; }).filter(Boolean), [raw, products]);
   const count = items.reduce((s, it) => s + it.qty, 0);
   const subtotal = items.reduce((s, it) => s + it.lineTotal, 0);
@@ -560,15 +336,23 @@ function CartProvider({ children }) {
   const discount = Math.max(0, originalTotal - subtotal);
   const shipping = subtotal === 0 ? 0 : subtotal >= 999 ? 0 : 59;
   const total = subtotal + shipping;
+
   const addToCart = (product, qty = 1) => {
     if (!isAvailable(product)) return { ok: false, reason: 'unavailable' };
     const max = maxQtyFor(product);
     setRaw(prev => { const found = prev.find(i => i.id === product.id); if (found) return prev.map(i => i.id === product.id ? { ...i, qty: Math.min(found.qty + qty, max) } : i); return [...prev, { id: product.id, qty: Math.min(qty, max) }]; });
+    if (user) {
+       const sb = getSupabaseClient();
+       if (sb) sb.from('user_carts').upsert({ user_id: user.id, product_id: product.id, quantity: qty });
+    }
     return { ok: true };
   };
-  const updateQty = (id, qty) => { const p = products.find(pp => pp.id === id); if (!p) return; const max = maxQtyFor(p); setRaw(prev => prev.map(i => i.id === id ? { ...i, qty: Math.max(1, Math.min(qty, max)) } : i)); };
-  const removeFromCart = (id) => setRaw(prev => prev.filter(i => i.id !== id));
-  const clearCart = () => setRaw([]);
+  const updateQty = (id, qty) => { const p = products.find(pp => pp.id === id); if (!p) return; const max = maxQtyFor(p); const next = Math.max(1, Math.min(qty, max)); setRaw(prev => prev.map(i => i.id === id ? { ...i, qty: next } : i)); 
+    if (user) { const sb = getSupabaseClient(); if (sb) sb.from('user_carts').upsert({ user_id: user.id, product_id: id, quantity: next }); }
+  };
+  const removeFromCart = (id) => { setRaw(prev => prev.filter(i => i.id !== id)); if (user) { const sb = getSupabaseClient(); if (sb) sb.from('user_carts').delete().eq('user_id', user.id).eq('product_id', id); } };
+  const clearCart = () => { setRaw([]); if (user) { const sb = getSupabaseClient(); if (sb) sb.from('user_carts').delete().eq('user_id', user.id); } };
+
   return (<CartContext.Provider value={{ items, count, subtotal, discount, shipping, total, addToCart, updateQty, removeFromCart, clearCart, open, setOpen }}>{children}<CartDrawer/></CartContext.Provider>);
 }
 function CartDrawer() {
@@ -626,6 +410,7 @@ const IconUser = ({ className = 'w-5 h-5' }) => (<svg viewBox="0 0 24 24" classN
 const IconHamburger = ({ className = 'w-5 h-5' }) => (<svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>);
 const IconClose = ({ className = 'w-5 h-5' }) => (<svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>);
 const IconInstagram = ({ className = 'w-5 h-5' }) => (<svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98C.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>);
+const IconFacebook = ({ className = 'w-5 h-5' }) => (<svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden="true"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>);
 const IconChevron = ({ className = 'w-4 h-4' }) => (<svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>);
 const IconArrow = ({ className = 'w-4 h-4' }) => (<svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>);
 const IconArrowLeft = ({ className = 'w-4 h-4' }) => (<svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>);
@@ -895,7 +680,103 @@ function SearchOverlay({ open, onClose }) {
   );
 }
 
-function FloatingInstagram() { return (<a href={INSTAGRAM_DM_URL} target="_blank" rel="noopener noreferrer" aria-label={`DM Reviora on Instagram — @${CONFIG.INSTAGRAM_USERNAME}`} onClick={() => Analytics.track('instagram_click', { context: 'floating' })} className="fixed bottom-5 right-5 z-40 w-12 h-12 flex items-center justify-center rounded-full bg-cocoa text-ivory shadow-lg hover:bg-gold hover:scale-110 transition-all duration-300"><IconInstagram className="w-6 h-6"/></a>); }
+/* --- CUSTOM CHATBOT COMPONENT --- */
+function Chatbot() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState([{ role: 'ai', text: 'Hi! How can I help you today?' }]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const endRef = useRef(null);
+
+  useEffect(() => {
+    if (endRef.current) endRef.current.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isOpen]);
+
+  const sendMessage = async (e) => {
+    e.preventDefault();
+    if (!input.trim() || loading) return;
+    
+    const userMsg = input.trim();
+    setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
+    setInput('');
+    setLoading(true);
+
+    try {
+      const res = await fetch(CONFIG.WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userMsg }) // Adjust based on n8n config
+      });
+      const data = await res.json();
+      
+      // Adjust this based on how n8n replies (e.g., data[0].text or data.output)
+      const aiText = data.output || data.text || data.response || (Array.isArray(data) ? data[0].text : 'Sorry, I encountered an error.');
+      
+      setMessages(prev => [...prev, { role: 'ai', text: aiText }]);
+    } catch (err) {
+      setMessages(prev => [...prev, { role: 'ai', text: 'Connection error. Please try again later.' }]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="max-w-3xl mx-auto px-4 pb-16">
+      <div className="bg-ivory border border-beige rounded-3xl overflow-hidden shadow-sm">
+        <button 
+          onClick={() => setIsOpen(!isOpen)}
+          className="w-full flex items-center justify-between p-6 bg-white hover:bg-cream transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center">
+              <IconSparkle className="w-5 h-5 text-gold"/>
+            </div>
+            <div className="text-left">
+              <p className="serif text-xl font-semibold">Chat with us</p>
+              <p className="text-xs text-cocoa/60">Powered by AI</p>
+            </div>
+          </div>
+          <IconChevron className={cx("w-5 h-5 text-cocoa/50 transition-transform", isOpen && "rotate-180")}/>
+        </button>
+
+        {isOpen && (
+          <div className="border-t border-beige/60 p-4 sm:p-6 bg-white flex flex-col h-[400px]">
+            <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2">
+              {messages.map((m, i) => (
+                <div key={i} className={cx("flex", m.role === 'user' ? "justify-end" : "justify-start")}>
+                  <div className={cx("max-w-[80%] rounded-2xl px-4 py-2.5 text-sm", m.role === 'user' ? "bg-cocoa text-ivory rounded-br-sm" : "bg-cream text-cocoa rounded-bl-sm border border-beige")}>
+                    {m.text}
+                  </div>
+                </div>
+              ))}
+              {loading && (
+                <div className="flex justify-start">
+                  <div className="bg-cream text-cocoa rounded-2xl rounded-bl-sm border border-beige px-4 py-2.5 text-sm flex gap-1">
+                    <span className="animate-bounce">●</span><span className="animate-bounce" style={{animationDelay: '0.1s'}}>●</span><span className="animate-bounce" style={{animationDelay: '0.2s'}}>●</span>
+                  </div>
+                </div>
+              )}
+              <div ref={endRef}/>
+            </div>
+            <form onSubmit={sendMessage} className="flex gap-2">
+              <input 
+                type="text" 
+                value={input} 
+                onChange={e => setInput(e.target.value)}
+                placeholder="Ask about shipping, returns, or jewellery..."
+                className="flex-1 bg-cream/50 border border-beige rounded-full px-4 py-2.5 text-sm outline-none focus:border-gold"
+              />
+              <button type="submit" disabled={loading || !input.trim()} className="w-10 h-10 rounded-full bg-gold text-ivory flex items-center justify-center disabled:opacity-50 hover:bg-cocoa transition-colors">
+                <IconArrow className="w-4 h-4"/>
+              </button>
+            </form>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function Footer() {
   const { openPreferences } = useConsent();
   const col = 'space-y-2.5';
@@ -906,7 +787,10 @@ function Footer() {
         <div>
           <div className="flex items-center gap-3"><BrandMark className="w-14 h-14"/><span className="leading-none"><span className="serif block text-xl tracking-[0.22em] font-semibold">REVÍORA</span><span className="block text-[8px] tracking-[0.5em] text-gold font-semibold mt-1">ORNAMENTS</span></span></div>
           <p className="serif italic text-lg text-cocoa/75 mt-4">Small details. Big style.</p>
-          <a href={INSTAGRAM_PROFILE_URL} target="_blank" rel="noopener noreferrer" onClick={() => Analytics.track('instagram_click', { context: 'footer' })} className="inline-flex items-center gap-2 mt-4 text-xs tracking-[0.2em] uppercase text-gold hover:text-cocoa transition-colors"><IconInstagram className="w-4 h-4"/>@{CONFIG.INSTAGRAM_USERNAME}</a>
+          <div className="flex items-center gap-4 mt-4">
+            <a href={INSTAGRAM_PROFILE_URL} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-xs tracking-[0.2em] uppercase text-gold hover:text-cocoa transition-colors"><IconInstagram className="w-4 h-4"/>@{CONFIG.INSTAGRAM_USERNAME}</a>
+            <a href={CONFIG.FACEBOOK_URL} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-xs tracking-[0.2em] uppercase text-gold hover:text-cocoa transition-colors"><IconFacebook className="w-4 h-4"/>Facebook</a>
+          </div>
         </div>
         <nav aria-label="Shop"><p className="text-[10px] font-bold tracking-[0.3em] uppercase text-cocoa mb-4">Shop</p><div className={col}><Link to="/shop" className={link}>Shop All</Link><Link to="/category/necklaces" className={link}>Necklaces</Link><Link to="/category/earrings" className={link}>Earrings</Link><Link to="/category/bracelets" className={link}>Bracelets</Link><Link to="/category/rings" className={link}>Rings</Link></div></nav>
         <nav aria-label="Company"><p className="text-[10px] font-bold tracking-[0.3em] uppercase text-cocoa mb-4">Company</p><div className={col}><Link to="/about" className={link}>About</Link><Link to="/faq" className={link}>FAQ</Link><Link to="/contact" className={link}>Contact</Link><Link to="/category/chains" className={link}>Chains</Link><Link to="/category/other-accessories" className={link}>Other Accessories</Link></div></nav>
@@ -1013,6 +897,13 @@ function Home() {
         </section>
       </div>
       <div className="bg-ivory/60 border-y border-beige/50"><div className="max-w-7xl mx-auto"><InstagramCTA/></div></div>
+      
+      {/* CHATBOT SECTION */}
+      <section className="pt-16 md:pt-24">
+        <Reveal><SectionHeading eyebrow="Need help?" title="Chat with our AI Assistant"/></Reveal>
+        <Reveal delay={100}><Chatbot/></Reveal>
+      </section>
+
       <section className="max-w-3xl mx-auto px-4 sm:px-6 pt-16 md:pt-24">
         <Reveal><SectionHeading eyebrow="Good to know" title="Questions, answered"/></Reveal>
         <Reveal delay={100}><Accordion items={FAQS.slice(0, 4)}/></Reveal>
@@ -1213,7 +1104,7 @@ function Login() {
   const handleSignIn = async () => { try { await signInWithGoogle(); notify('Opening Google sign-in…'); } catch (e) { notify(e.message || 'Sign-in failed'); } };
   return (
     <main className="max-w-md mx-auto px-4 py-16">
-      <PageHero eyebrow="Optional" title="Sign In" subtitle="Signing in is optional — it just lets you track your orders. Checkout works without an account."/>
+      <PageHero eyebrow="Optional" title="Sign In" subtitle="Signing in is optional — it just lets you sync your cart across devices and track your orders."/>
       <div className="rounded-3xl border border-beige bg-ivory p-8 text-center">
         <IconGoogle className="w-10 h-10 mx-auto"/>
         <p className="serif text-2xl mt-4">Continue with Google</p>
@@ -1226,21 +1117,64 @@ function Login() {
 }
 function Account() {
   useSEO({ title: 'My Account' });
-  const { user, signOut } = useAuth();
-  useEffect(() => { if (!user) navigate('/login'); }, [user]);
+  const { user, session, signOut } = useAuth();
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => { 
+    if (!user) { navigate('/login'); return; }
+    const sb = getSupabaseClient();
+    if (!sb) return;
+    sb.from('orders').select('*').eq('user_id', user.id).order('created_at', { ascending: false })
+      .then(({ data, error }) => {
+        if (!error && data) setOrders(data);
+        setLoading(false);
+      });
+  }, [user]);
+
   if (!user) return null;
-  return (<main className="max-w-3xl mx-auto px-4 py-16"><PageHero eyebrow="Account" title="My Account" subtitle={`Signed in as ${user.email}`}/><div className="rounded-3xl border border-beige bg-ivory p-6"><p className="serif text-xl">Order history</p><p className="text-sm text-cocoa/65 mt-1">Orders placed while signed in will appear here.</p></div><div className="mt-6 text-center"><button onClick={signOut} className="text-[10px] tracking-[0.25em] uppercase text-cocoa/60 hover:text-gold underline underline-offset-4">Sign out</button></div></main>);
+  return (
+    <main className="max-w-3xl mx-auto px-4 py-16">
+      <PageHero eyebrow="Account" title="My Account" subtitle={`Signed in as ${user.email}`}/>
+      <div className="rounded-3xl border border-beige bg-ivory p-6">
+        <p className="serif text-xl mb-4">Order history</p>
+        {loading ? <p className="text-sm text-cocoa/60">Loading orders...</p> : orders.length === 0 ? (
+          <p className="text-sm text-cocoa/65">You haven't placed any orders while signed in.</p>
+        ) : (
+          <div className="divide-y divide-beige/60">
+            {orders.map(o => (
+              <div key={o.id} className="py-4 flex justify-between items-center">
+                <div>
+                  <p className="font-semibold text-cocoa">{o.order_number}</p>
+                  <p className="text-xs text-cocoa/60">{new Date(o.created_at).toLocaleDateString()}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-medium">{formatPrice(o.total)}</p>
+                  <p className="text-[10px] tracking-[0.15em] uppercase text-gold">{o.order_status}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      <div className="mt-6 text-center"><button onClick={signOut} className="text-[10px] tracking-[0.25em] uppercase text-cocoa/60 hover:text-gold underline underline-offset-4">Sign out</button></div>
+    </main>
+  );
 }
 
 function Checkout() {
   useSEO({ title: 'Checkout' });
+  const { user, session } = useAuth();
   const { items, subtotal, discount, shipping, total, clearCart } = useCart();
   const { notify } = useToast();
-  const [form, setForm] = useState({ name: '', address: '', city: '', state: '', postal: '', country: 'India', phone: '', email: '', marketing: false });
+  const [form, setForm] = useState({ name: '', address: '', city: '', state: '', postal: '', country: 'India', phone: '', email: user?.email || '', marketing: false });
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [agreeShipping, setAgreeShipping] = useState(false);
   const [busy, setBusy] = useState(false);
   const [success, setSuccess] = useState(null);
+  
+  useEffect(() => { if (user && !form.email) setForm(f => ({ ...f, email: user.email })); }, [user]);
+
   if (success) return (
     <main className="max-w-xl mx-auto px-4 py-16 text-center">
       <IconSparkle className="w-8 h-8 text-gold mx-auto twinkle"/>
@@ -1251,7 +1185,9 @@ function Checkout() {
     </main>
   );
   if (items.length === 0) return (<main className="max-w-md mx-auto px-4 py-16 text-center"><IconSparkle className="w-6 h-6 text-gold mx-auto"/><h1 className="serif text-3xl mt-4">Your cart is empty</h1><p className="text-sm text-cocoa/65 mt-2">Add a piece before checking out.</p><div className="mt-6"><Btn to="/shop">Shop the Collection</Btn></div></main>);
+  
   const validators = { name: v => v.trim().length >= 2 || 'Enter your full name', address: v => v.trim().length >= 6 || 'Enter your delivery address', city: v => v.trim().length >= 2 || 'Enter your city', state: v => v.trim().length >= 2 || 'Enter your state', postal: v => /^\d{4,10}$/.test(v.trim()) || 'Enter a valid postal code', country: v => v.trim().length >= 2 || 'Enter your country', phone: v => /^\+?\d{6,15}$/.test(v.replace(/\s|-/g,'')) || 'Enter a valid phone number' };
+  
   const submitOrder = async () => {
     for (const [k, test] of Object.entries(validators)) { const r = test(form[k] || ''); if (r !== true) { notify(r); return; } }
     if (!agreeTerms) return notify('Please accept the Terms & Conditions');
@@ -1259,13 +1195,15 @@ function Checkout() {
     setBusy(true);
     try {
       const payload = { customer: form, items: items.map(it => ({ product_id: it.id, qty: it.qty })), agreements: { terms: agreeTerms, shipping: agreeShipping, marketing: form.marketing } };
-      const r = await EdgeAPI.call('checkout', payload);
+      const r = await EdgeAPI.call('checkout', payload, { userToken: session?.access_token });
       if (r.success && r.order_number) { setSuccess({ order_number: r.order_number }); clearCart(); }
       else notify(r.message || 'Could not place order');
     } catch (e) { notify(e.message || 'Could not submit order'); }
     finally { setBusy(false); }
   };
+  
   const field = (name, label, type = 'text', extra = {}) => (<label className="block"><span className="text-[10px] font-bold tracking-[0.25em] uppercase text-cocoa/60">{label}</span><input type={type} value={form[name]} {...extra} onChange={e => setForm(f => ({ ...f, [name]: e.target.value }))} className="mt-1.5 w-full bg-white border border-beige rounded-xl px-4 py-3 text-sm outline-none focus:border-gold transition-colors"/></label>);
+  
   return (
     <main className="max-w-5xl mx-auto px-4 sm:px-6 py-10 md:py-14">
       <Reveal><header className="text-center fade-up mb-10"><p className="text-[10px] font-semibold tracking-[0.35em] uppercase text-gold flex items-center justify-center gap-2"><IconSparkle className="w-2.5 h-2.5"/>Secure Checkout</p><h1 className="serif text-4xl md:text-5xl mt-3">Checkout</h1></header></Reveal>
@@ -1273,7 +1211,18 @@ function Checkout() {
         <div className="space-y-6">
           <section className="rounded-3xl border border-beige bg-ivory p-6"><p className="serif text-xl">Delivery details</p><div className="mt-4 grid sm:grid-cols-2 gap-4">{field('name', 'Full name')}{field('email', 'Email (optional)', 'email')}{field('phone', 'Phone (with country code)', 'tel', { placeholder: '+91 99999 99999' })}{field('postal', 'Postal code')}<div className="sm:col-span-2">{field('address', 'Full address')}</div>{field('city', 'City')}{field('state', 'State')}{field('country', 'Country')}</div></section>
           <section className="rounded-3xl border border-beige bg-ivory p-6 space-y-3"><p className="serif text-xl">Agreements</p><label className="flex items-start gap-3 text-sm cursor-pointer"><input type="checkbox" className="mt-1 accent-[#A68A5B]" checked={agreeTerms} onChange={e => setAgreeTerms(e.target.checked)}/><span>I agree to the <Link to="/terms" className="text-gold underline underline-offset-4">Terms & Conditions</Link>. <strong className="text-[10px] tracking-[0.2em] uppercase text-gold">Required</strong></span></label><label className="flex items-start gap-3 text-sm cursor-pointer"><input type="checkbox" className="mt-1 accent-[#A68A5B]" checked={agreeShipping} onChange={e => setAgreeShipping(e.target.checked)}/><span>I agree to the <Link to="/shipping" className="text-gold underline underline-offset-4">Shipping Policy</Link>. <strong className="text-[10px] tracking-[0.2em] uppercase text-gold">Required</strong></span></label><label className="flex items-start gap-3 text-sm cursor-pointer"><input type="checkbox" className="mt-1 accent-[#A68A5B]" checked={form.marketing} onChange={e => setForm(f => ({ ...f, marketing: e.target.checked }))}/><span>Send me emails about new products. <span className="text-[10px] tracking-[0.2em] uppercase text-cocoa/50">Optional</span></span></label></section>
-          <div className="rounded-3xl border-2 border-dashed border-gold/50 bg-gold/5 p-6 text-center"><IconSparkle className="w-5 h-5 text-gold mx-auto"/><p className="serif text-lg mt-3">Payment is confirmed via Instagram DM</p><p className="text-sm text-cocoa/70 mt-2 max-w-md mx-auto">After you submit, we'll contact you on Instagram with the total and payment details.</p></div>
+          
+          {/* PAYMENT SECTION (NEW) */}
+          <section className="rounded-3xl border-2 border-dashed border-gold/50 bg-gold/5 p-6 text-center">
+            <IconSparkle className="w-6 h-6 text-gold mx-auto"/>
+            <p className="serif text-2xl mt-3">Payment</p>
+            <p className="text-sm text-cocoa/70 mt-2 mb-4">Please pay via UPI and share the screenshot on Instagram DM to confirm your order.</p>
+            <div className="bg-white p-4 rounded-xl inline-block border border-beige shadow-sm">
+              <img src="./payment-qr.png" alt="Payment QR" className="w-40 h-40 object-contain mx-auto" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }} />
+              <div style={{display: 'none'}} className="text-xs text-cocoa/50 italic py-8">Add payment-qr.png to show QR</div>
+              <p className="font-mono text-sm font-bold mt-2">{CONFIG.UPI_ID}</p>
+            </div>
+          </section>
         </div>
         <aside className="lg:sticky lg:top-24 h-fit"><div className="rounded-3xl border border-beige bg-ivory p-6"><p className="serif text-xl">Order summary</p><ul className="mt-4 space-y-3 divide-y divide-beige/50">{items.map(it => (<li key={it.id} className="pt-3 first:pt-0 flex gap-3"><span className="block w-12 h-14 rounded-lg overflow-hidden border border-beige/70 shrink-0 bg-white"><ProductImage product={it}/></span><span className="flex-1 min-w-0"><span className="serif text-base block truncate">{it.name}</span><span className="text-[10px] tracking-[0.18em] uppercase text-cocoa/50">{it.sku} · × {it.qty}</span></span><span className="text-sm">{formatPrice(it.lineTotal)}</span></li>))}</ul><dl className="mt-4 pt-4 border-t border-beige/60 space-y-1.5 text-sm"><div className="flex justify-between"><dt className="text-cocoa/60">Subtotal</dt><dd>{formatPrice(subtotal)}</dd></div>{discount > 0 && <div className="flex justify-between text-gold"><dt>Savings</dt><dd>− {formatPrice(discount)}</dd></div>}<div className="flex justify-between"><dt className="text-cocoa/60">Shipping</dt><dd>{shipping === 0 ? 'Free' : formatPrice(shipping)}</dd></div><div className="flex justify-between border-t border-beige/60 pt-2 mt-2"><dt className="text-[10px] tracking-[0.25em] uppercase text-cocoa/60">Total</dt><dd className="serif text-xl">{formatPrice(total)}</dd></div></dl><button onClick={submitOrder} disabled={busy} className="mt-5 w-full rounded-full bg-cocoa text-ivory text-[11px] font-semibold tracking-[0.2em] uppercase py-4 hover:bg-gold transition-colors disabled:opacity-40 disabled:cursor-not-allowed">{busy ? 'Submitting…' : 'Place Order'}</button><p className="mt-3 text-[10px] text-cocoa/50 text-center">We'll confirm payment and shipping via Instagram DM.</p></div></aside>
       </div>
@@ -1428,28 +1377,27 @@ const Root = () => (<ErrorBoundary><RouterProvider><CatalogProvider><ConsentProv
 ReactDOM.createRoot(document.getElementById('root')).render(<Root/>);
 </script>
 
-  <script>
-    (function () {
-      var REACT = ['https://unpkg.com/react@18.3.1/umd/react.production.min.js', 'https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js'];
-      var REACT_DOM = ['https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js', 'https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js'];
-      var BABEL = ['https://unpkg.com/@babel/standalone@7.24.7/babel.min.js', 'https://cdn.jsdelivr.net/npm/@babel/standalone@7.24.7/babel.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js'];
-      var TAILWIND = ['https://cdn.tailwindcss.com/3.4.16'];
-      function loadScript(urls, onDone) { var i = 0; (function next() { if (i >= urls.length) return onDone(false); var s = document.createElement('script'); s.src = urls[i++]; s.onload = function () { onDone(true); }; s.onerror = next; document.head.appendChild(s); })(); }
-      loadScript(TAILWIND, function (okTw) {
-        if (okTw && window.tailwind) { tailwind.config = { theme: { extend: { colors: { cream: '#F6EFE5', ivory: '#FFFDF9', cocoa: '#4A3B2A', gold: '#A68A5B', beige: '#DCCBB4' }, fontFamily: { serif: ['"Cormorant Garamond"', 'serif'], sans: ['Manrope', 'sans-serif'] } } } }; }
-        loadScript(REACT, function (okR) {
-          if (!okR) return;
-          loadScript(REACT_DOM, function (okD) {
-            if (!okD) return;
-            loadScript(BABEL, function (okB) {
-              if (!okB) return;
-              try { var src = document.getElementById('reviora-app').textContent; var compiled = Babel.transform(src, { presets: ['react'] }).code; var runner = document.createElement('script'); runner.text = compiled; document.body.appendChild(runner); } catch (e) { console.error(e); }
-            });
+<script>
+  (function () {
+    var REACT = ['https://unpkg.com/react@18.3.1/umd/react.production.min.js', 'https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js'];
+    var REACT_DOM = ['https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js', 'https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js'];
+    var BABEL = ['https://unpkg.com/@babel/standalone@7.24.7/babel.min.js', 'https://cdn.jsdelivr.net/npm/@babel/standalone@7.24.7/babel.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js'];
+    var TAILWIND = ['https://cdn.tailwindcss.com/3.4.16'];
+    function loadScript(urls, onDone) { var i = 0; (function next() { if (i >= urls.length) return onDone(false); var s = document.createElement('script'); s.src = urls[i++]; s.onload = function () { onDone(true); }; s.onerror = next; document.head.appendChild(s); })(); }
+    loadScript(TAILWIND, function (okTw) {
+      if (okTw && window.tailwind) { tailwind.config = { theme: { extend: { colors: { cream: '#F6EFE5', ivory: '#FFFDF9', cocoa: '#4A3B2A', gold: '#A68A5B', beige: '#DCCBB4' }, fontFamily: { serif: ['"Cormorant Garamond"', 'serif'], sans: ['Manrope', 'sans-serif'] } } } }; }
+      loadScript(REACT, function (okR) {
+        if (!okR) return;
+        loadScript(REACT_DOM, function (okD) {
+          if (!okD) return;
+          loadScript(BABEL, function (okB) {
+            if (!okB) return;
+            try { var src = document.getElementById('reviora-app').textContent; var compiled = Babel.transform(src, { presets: ['react'] }).code; var runner = document.createElement('script'); runner.text = compiled; document.body.appendChild(runner); } catch (e) { console.error(e); }
           });
         });
       });
-    })();
-  </script>
+    });
+  })();
+</script>
 </body>
-
 </html>
