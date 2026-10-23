@@ -1,91 +1,328 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Reviora Ornaments — Small details. Big style.</title>
-<meta name="description" content="Reviora Ornaments — minimal jewellery & ornaments for women. Order via Instagram DM @revioraornaments." />
-<meta name="robots" content="index, follow" />
-<meta name="theme-color" content="#FFFDF9" />
-<meta property="og:type" content="website" />
-<meta property="og:site_name" content="Reviora Ornaments" />
-<meta property="og:title" content="Reviora Ornaments — Small details. Big style." />
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23A68A5B' d='M12 0C12.9 6.9 17.1 11.1 24 12C17.1 12.9 12.9 17.1 12 24C11.1 17.1 6.9 12.9 0 12C6.9 11.1 11.1 6.9 12 0Z'/%3E%3C/svg%3E" />
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link rel="preconnect" href="https://unpkg.com" crossorigin />
-<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
-<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-<style>
-  html,body{overflow-x:hidden;max-width:100vw}
-  html{scroll-behavior:smooth}
-  body{background:#F6EFE5;color:#4A3B2A;font-family:Manrope,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
-  #root{overflow-x:hidden;max-width:100vw}
-  .serif{font-family:'Cormorant Garamond',Georgia,serif}
-  ::selection{background:rgba(166,138,91,.25)}
-  :focus-visible{outline:2px solid #A68A5B;outline-offset:2px;border-radius:4px}
-  .no-scrollbar::-webkit-scrollbar{display:none}
-  .no-scrollbar{scrollbar-width:none}
-  @keyframes sk{to{background-position:-200% 0}}
-  .skeleton{background:linear-gradient(110deg,#EDE3D2 30%,#F7F1E6 50%,#EDE3D2 70%);background-size:200% 100%;animation:sk 1.4s linear infinite}
-  @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-  .fade-up{animation:fadeUp .55s ease both}
-  @keyframes twinkle{0%,100%{opacity:.35}50%{opacity:1}}
-  .twinkle{animation:twinkle 3.4s ease-in-out infinite}
-  @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px)}}
-  .floaty{animation:floaty 8s ease-in-out infinite}
-  .floaty-slow{animation:floaty 11s ease-in-out infinite}
-  @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
-  .shimmer-text{background:linear-gradient(90deg,rgba(255,253,249,.75) 30%,#fff 50%,rgba(255,253,249,.75) 70%);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shimmer 5s linear infinite}
-  .reveal{opacity:0;transform:translateY(26px);transition:opacity .75s cubic-bezier(.2,.6,.2,1),transform .75s cubic-bezier(.2,.6,.2,1)}
-  .reveal.is-visible{opacity:1;transform:none}
-  .hero-scrub-wrap{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
-  .hero-scrub-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;opacity:0;will-change:opacity;transition:opacity .18s ease}
-  .hero-content-z{position:relative;z-index:2}
-  @media (prefers-reduced-motion: reduce){
-    .reveal{opacity:1;transform:none;transition:none}
-    .twinkle,.floaty,.floaty-slow{animation:none}
-    .hero-scrub-img{transition:none}
-  }
-  .zoom-img{transition:transform .8s cubic-bezier(.2,.6,.2,1)}
-  .zoom-hover:hover .zoom-img{transform:scale(1.14)}
-  .zoom-hover{cursor:zoom-in}
-  .prose p{margin:0 0 1rem;line-height:1.85;color:#5b4a36}
-  .prose ul{margin:0 0 1.25rem;padding:0;list-style:none}
-  .prose li{position:relative;padding-left:1.35rem;margin-bottom:.65rem;line-height:1.75;color:#5b4a36}
-  .prose li::before{content:'✦';position:absolute;left:0;top:.1rem;color:#A68A5B;font-size:.7rem}
-  .prose h2{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:1.7rem;color:#4A3B2A;margin:2.25rem 0 .75rem}
-  .prose strong{color:#4A3B2A}
-  .prose a{color:#A68A5B;text-decoration:underline;text-underline-offset:4px}
-  /* Desktop row: strictly 4 visible, rest hidden behind arrows */
-  .row-desktop-wrap{position:relative}
-  .row-desktop-track{display:none}
-  @media (min-width:768px){
-    .row-desktop-track{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;gap:1.5rem}
-    .row-desktop-track > *{flex:0 0 calc((100% - 3*1.5rem)/4);scroll-snap-align:start}
-  }
-  /* Mobile row: horizontal swipe, cards ~68% */
-  .row-mobile-track{display:flex;gap:1rem;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;-webkit-overflow-scrolling:touch}
-  .row-mobile-track > *{flex:0 0 68%;scroll-snap-align:start}
-  @media (min-width:640px){.row-mobile-track > *{flex:0 0 45%}}
-  @media (min-width:768px){.row-mobile-track{display:none}}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reviora Ornaments — Small details. Big style.</title>
+  <meta name="description"
+    content="Reviora Ornaments — minimal jewellery & ornaments for women. Order via Instagram DM @revioraornaments." />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#FFFDF9" />
+  <link rel="icon" type="image/png" href="./reviora.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Manrope:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet" />
+  <style>
+    html,
+    body {
+      overflow-x: hidden;
+      max-width: 100vw
+    }
+
+    html {
+      scroll-behavior: smooth
+    }
+
+    body {
+      background: #F6EFE5;
+      color: #4A3B2A;
+      font-family: Manrope, system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased
+    }
+
+    #root {
+      overflow-x: hidden;
+      max-width: 100vw
+    }
+
+    .serif {
+      font-family: 'Cormorant Garamond', Georgia, serif
+    }
+
+    ::selection {
+      background: rgba(166, 138, 91, .25)
+    }
+
+    :focus-visible {
+      outline: 2px solid #A68A5B;
+      outline-offset: 2px;
+      border-radius: 4px
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+      display: none
+    }
+
+    .no-scrollbar {
+      scrollbar-width: none
+    }
+
+    @keyframes sk {
+      to {
+        background-position: -200% 0
+      }
+    }
+
+    .skeleton {
+      background: linear-gradient(110deg, #EDE3D2 30%, #F7F1E6 50%, #EDE3D2 70%);
+      background-size: 200% 100%;
+      animation: sk 1.4s linear infinite
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(14px)
+      }
+
+      to {
+        opacity: 1;
+        transform: none
+      }
+    }
+
+    .fade-up {
+      animation: fadeUp .55s ease both
+    }
+
+    @keyframes twinkle {
+
+      0%,
+      100% {
+        opacity: .35
+      }
+
+      50% {
+        opacity: 1
+      }
+    }
+
+    .twinkle {
+      animation: twinkle 3.4s ease-in-out infinite
+    }
+
+    @keyframes floaty {
+
+      0%,
+      100% {
+        transform: translateY(0)
+      }
+
+      50% {
+        transform: translateY(-16px)
+      }
+    }
+
+    .floaty {
+      animation: floaty 8s ease-in-out infinite
+    }
+
+    .floaty-slow {
+      animation: floaty 11s ease-in-out infinite
+    }
+
+    @keyframes shimmer {
+      0% {
+        background-position: -200% 0
+      }
+
+      100% {
+        background-position: 200% 0
+      }
+    }
+
+    .shimmer-text {
+      background: linear-gradient(90deg, rgba(255, 253, 249, .75) 30%, #fff 50%, rgba(255, 253, 249, .75) 70%);
+      background-size: 200% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: shimmer 5s linear infinite
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(26px);
+      transition: opacity .75s cubic-bezier(.2, .6, .2, 1), transform .75s cubic-bezier(.2, .6, .2, 1)
+    }
+
+    .reveal.is-visible {
+      opacity: 1;
+      transform: none
+    }
+
+    .hero-scrub-wrap {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 0
+    }
+
+    .hero-scrub-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center;
+      opacity: 0;
+      will-change: opacity;
+      transition: opacity .18s ease
+    }
+
+    .hero-content-z {
+      position: relative;
+      z-index: 2
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .reveal {
+        opacity: 1;
+        transform: none;
+        transition: none
+      }
+
+      .twinkle,
+      .floaty,
+      .floaty-slow {
+        animation: none
+      }
+
+      .hero-scrub-img {
+        transition: none
+      }
+    }
+
+    .zoom-img {
+      transition: transform .8s cubic-bezier(.2, .6, .2, 1)
+    }
+
+    .zoom-hover:hover .zoom-img {
+      transform: scale(1.14)
+    }
+
+    .zoom-hover {
+      cursor: zoom-in
+    }
+
+    .prose p {
+      margin: 0 0 1rem;
+      line-height: 1.85;
+      color: #5b4a36
+    }
+
+    .prose ul {
+      margin: 0 0 1.25rem;
+      padding: 0;
+      list-style: none
+    }
+
+    .prose li {
+      position: relative;
+      padding-left: 1.35rem;
+      margin-bottom: .65rem;
+      line-height: 1.75;
+      color: #5b4a36
+    }
+
+    .prose li::before {
+      content: '✦';
+      position: absolute;
+      left: 0;
+      top: .1rem;
+      color: #A68A5B;
+      font-size: .7rem
+    }
+
+    .prose h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 600;
+      font-size: 1.7rem;
+      color: #4A3B2A;
+      margin: 2.25rem 0 .75rem
+    }
+
+    .prose h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 600;
+      font-size: 1.25rem;
+      color: #4A3B2A;
+      margin: 1.5rem 0 .5rem
+    }
+
+    .prose strong {
+      color: #4A3B2A
+    }
+
+    .prose a {
+      color: #A68A5B;
+      text-decoration: underline;
+      text-underline-offset: 4px
+    }
+
+    .row-desktop-wrap {
+      position: relative
+    }
+
+    .row-desktop-track {
+      display: none
+    }
+
+    @media (min-width:768px) {
+      .row-desktop-track {
+        display: flex;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        scroll-behavior: smooth;
+        gap: 1.5rem
+      }
+
+      .row-desktop-track>* {
+        flex: 0 0 calc((100% - 3*1.5rem)/4);
+        scroll-snap-align: start
+      }
+    }
+
+    .row-mobile-track {
+      display: flex;
+      gap: 1rem;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch
+    }
+
+    .row-mobile-track>* {
+      flex: 0 0 68%;
+      scroll-snap-align: start
+    }
+
+    @media (min-width:640px) {
+      .row-mobile-track>* {
+        flex: 0 0 45%
+      }
+    }
+
+    @media (min-width:768px) {
+      .row-mobile-track {
+        display: none
+      }
+    }
+  </style>
 </head>
+
 <body>
-<noscript><p style="padding:2rem;text-align:center">Reviora Ornaments — please enable JavaScript. Find us on Instagram: @revioraornaments</p></noscript>
-
-<div id="root">
-  <div id="boot-loading" style="min-height:70vh;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',Georgia,serif;font-size:22px;letter-spacing:.35em;color:#4A3B2A">REVÍORA&nbsp;·&nbsp;LOADING…</div>
-  <div id="boot-error" style="display:none;min-height:70vh;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;gap:12px">
-    <p style="font-family:Georgia,serif;font-size:26px">Couldn't load the website libraries.</p>
-    <p style="font-size:14px;color:#6b5a45">Please check your internet connection and refresh the page.</p>
-  </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-
-<script type="text/reviora-app" id="reviora-app">
+  <noscript>
+    <p style="padding:2rem;text-align:center">Reviora Ornaments — please enable JavaScript. Find us on Instagram:
+      @revioraornaments</p>
+  </noscript>
+  <div id="root"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script type="text/reviora-app" id="reviora-app">
 const { useState, useEffect, useMemo, useRef, useContext, createContext } = React;
 
 const CONFIG = {
@@ -93,7 +330,6 @@ const CONFIG = {
   SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_4dviwRWhXlVF9-6X7LR57A_SJHy3NNZ',
   INSTAGRAM_USERNAME: 'revioraornaments',
   WHATSAPP_NUMBER: '',
-  PAYMENT_CONFIG: { enabled: false, provider: '', publicKey: '' },
   COOKIE_POLICY_VERSION: '1.0',
 };
 const EDGE_FUNCTIONS_BASE = CONFIG.SUPABASE_URL.replace(/\/$/, '') + '/functions/v1';
@@ -109,11 +345,7 @@ const cx = (...a) => a.filter(Boolean).join(' ');
 const Analytics = { _allowed: false, setAllowed(v) { this._allowed = !!v; }, track(e, p = {}) { if (!this._allowed) return; if (window.__REVIORA_DEBUG__) console.info('[analytics]', e, p); } };
 
 const SupabaseREST = {
-  isConfigured() {
-    return CONFIG.SUPABASE_URL && !CONFIG.SUPABASE_URL.includes('YOUR-PROJECT') &&
-           CONFIG.SUPABASE_PUBLISHABLE_KEY && CONFIG.SUPABASE_PUBLISHABLE_KEY.startsWith('sb_publishable_') &&
-           !CONFIG.SUPABASE_PUBLISHABLE_KEY.includes('YOUR_KEY');
-  },
+  isConfigured() { return CONFIG.SUPABASE_URL && CONFIG.SUPABASE_PUBLISHABLE_KEY && CONFIG.SUPABASE_PUBLISHABLE_KEY.startsWith('sb_publishable_'); },
   async select(table, query = '') {
     if (!this.isConfigured()) throw new Error('Supabase not configured');
     const url = `${CONFIG.SUPABASE_URL}/rest/v1/${table}${query ? '?' + query : ''}`;
@@ -122,53 +354,22 @@ const SupabaseREST = {
     return res.json();
   },
 };
-
-let _supabase = null;
-function getSupabaseClient() {
-  if (_supabase) return _supabase;
-  if (!SupabaseREST.isConfigured()) return null;
-  if (!window.supabase || !window.supabase.createClient) return null;
-  _supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_PUBLISHABLE_KEY);
-  return _supabase;
-}
-
 const EdgeAPI = {
   isConfigured() { return SupabaseREST.isConfigured(); },
-  async call(name, body = {}, opts = {}) {
+  async call(name, body = {}) {
     if (!this.isConfigured()) throw new Error('Supabase not configured');
     const url = `${EDGE_FUNCTIONS_BASE}/${name}`;
-    const headers = { 'Content-Type': 'application/json', apikey: CONFIG.SUPABASE_PUBLISHABLE_KEY, Authorization: `Bearer ${opts.userToken || CONFIG.SUPABASE_PUBLISHABLE_KEY}` };
-    const res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) });
+    const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: CONFIG.SUPABASE_PUBLISHABLE_KEY, Authorization: `Bearer ${CONFIG.SUPABASE_PUBLISHABLE_KEY}` }, body: JSON.stringify(body) });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.error || `Edge function ${name} failed (${res.status})`);
     return data;
   },
 };
 
-const DEMO_PRODUCTS = [
-  { id:'rv001', sku:'RV001', name:'Mermaid Pearl Pendant', slug:'mermaid-pearl-pendant', category:'Necklaces', subcategory:'Pendant', price:299, sale_price:null, currency:'INR', images:[''], art:'necklace', description:'A sculpted mermaid-tail pendant set inside a sparkling hoop, finished with a single soft pearl.', material:'Gold-tone alloy, pearl finish, cubic zirconia', care:'Keep dry. Wipe gently after use.', stock:6, availability:'in_stock', published:true, collection_type:'featured', createdAt:'2025-11-02' },
-  { id:'rv002', sku:'RV002', name:'Lavender Heart Pendant', slug:'lavender-heart-pendant', category:'Necklaces', subcategory:'Pendant', price:249, sale_price:199, currency:'INR', images:[''], art:'necklace', description:'A soft lilac heart caught in delicate prongs.', material:'Gold-tone alloy, lavender cubic zirconia', care:'Keep away from perfume and water.', stock:8, availability:'in_stock', published:true, collection_type:'new_arrival', createdAt:'2026-01-08' },
-  { id:'rv003', sku:'RV003', name:'Pearl Drop Chain', slug:'pearl-drop-chain', category:'Necklaces', subcategory:'Pearl', price:199, sale_price:null, currency:'INR', images:[''], art:'necklace', description:'One perfect pearl on the most minimal chain.', material:'Gold-tone alloy, pearl finish', care:'Keep dry.', stock:10, availability:'in_stock', published:true, collection_type:'best_seller', createdAt:'2025-10-18' },
-  { id:'rv004', sku:'RV004', name:'Golden Bloom Studs', slug:'golden-bloom-studs', category:'Earrings', subcategory:'Studs', price:179, sale_price:null, currency:'INR', images:[''], art:'earrings', description:'Tiny five-petal blooms with a golden centre.', material:'Gold-tone alloy', care:'Remove before sleeping.', stock:12, availability:'in_stock', published:true, collection_type:'new_arrival', createdAt:'2026-01-12' },
-  { id:'rv005', sku:'RV005', name:'Moonlight Hoops', slug:'moonlight-hoops', category:'Earrings', subcategory:'Hoops', price:219, sale_price:null, currency:'INR', images:[''], art:'earrings', description:'Slim golden hoops with a soft pearl drop.', material:'Gold-tone alloy, pearl finish', care:'Keep dry.', stock:9, availability:'in_stock', published:true, collection_type:'regular', createdAt:'2025-12-01' },
-  { id:'rv006', sku:'RV006', name:'Aura Cuff Bracelet', slug:'aura-cuff-bracelet', category:'Bracelets', subcategory:'Cuff', price:259, sale_price:229, currency:'INR', images:[''], art:'bracelet', description:'A smooth open cuff with a single orbital charm.', material:'Gold-tone alloy', care:'Bend gently to adjust.', stock:7, availability:'in_stock', published:true, collection_type:'best_seller', createdAt:'2025-11-22' },
-  { id:'rv007', sku:'RV007', name:'Infinity Band Ring', slug:'infinity-band-ring', category:'Rings', subcategory:'Band', price:149, sale_price:null, currency:'INR', images:[''], art:'ring', description:'A clean twisted band that catches the light.', material:'Stainless steel', care:'Water-friendly.', stock:14, availability:'in_stock', published:true, collection_type:'best_seller', createdAt:'2025-11-30' },
-  { id:'rv008', sku:'RV008', name:'Whisper Rope Chain', slug:'whisper-rope-chain', category:'Chains', subcategory:'Rope', price:329, sale_price:null, currency:'INR', images:[''], art:'chain', description:'A whisper-thin rope chain.', material:'Gold-tone alloy', care:'Keep dry.', stock:6, availability:'in_stock', published:true, collection_type:'regular', createdAt:'2025-10-25' },
-  { id:'rv009', sku:'RV009', name:'Velvet Onyx Ring', slug:'velvet-onyx-ring', category:'Rings', subcategory:'Gemstone', price:299, sale_price:null, currency:'INR', images:[''], art:'ring', description:'A slim gold band with polished black onyx.', material:'Gold-tone alloy, onyx', care:'Avoid scratches.', stock:4, availability:'in_stock', published:true, collection_type:'featured', createdAt:'2026-01-15' },
-  { id:'rv010', sku:'RV010', name:'Angel Wing Pendant', slug:'angel-wing-pendant', category:'Necklaces', subcategory:'Pendant', price:229, sale_price:null, currency:'INR', images:[''], art:'necklace', description:'A tiny golden wing dusted with crystals.', material:'Gold-tone alloy, cubic zirconia', care:'Keep dry.', stock:5, availability:'in_stock', published:true, collection_type:'regular', createdAt:'2025-12-10' },
-  { id:'rv011', sku:'RV011', name:'Starlight Anklet', slug:'starlight-anklet', category:'Other Accessories', subcategory:'Anklet', price:189, sale_price:null, currency:'INR', images:[''], art:'anklet', description:'A delicate chain with scattered star charms.', material:'Gold-tone alloy', care:'Remove before swimming.', stock:11, availability:'in_stock', published:true, collection_type:'new_arrival', createdAt:'2026-01-18' },
-  { id:'rv012', sku:'RV012', name:'Vintage Pearl Choker', slug:'vintage-pearl-choker', category:'Necklaces', subcategory:'Pearl', price:399, sale_price:null, currency:'INR', images:[''], art:'necklace', description:'A classic strand of lustrous pearls.', material:'Shell pearls', care:'Store flat.', stock:3, availability:'in_stock', published:true, collection_type:'featured', createdAt:'2025-12-05' },
-  { id:'rv013', sku:'RV013', name:'Vintage Locket', slug:'vintage-locket', category:'Necklaces', subcategory:'Locket', price:349, sale_price:null, currency:'INR', images:[''], art:'necklace', description:'An engraved gold locket.', material:'Gold-tone alloy', care:'Polish gently.', stock:3, availability:'in_stock', published:true, collection_type:'new_arrival', createdAt:'2026-01-20' },
-  { id:'rv014', sku:'RV014', name:'Serene Pearl Studs', slug:'serene-pearl-studs', category:'Earrings', subcategory:'Studs', price:159, sale_price:null, currency:'INR', images:[''], art:'earrings', description:'Round pearls on gold posts.', material:'Gold-tone alloy, pearl', care:'Keep dry.', stock:15, availability:'in_stock', published:true, collection_type:'new_arrival', createdAt:'2026-01-21' },
-  { id:'rv015', sku:'RV015', name:'Ember Stack Ring', slug:'ember-stack-ring', category:'Rings', subcategory:'Stack', price:189, sale_price:null, currency:'INR', images:[''], art:'ring', description:'A thin stackable band.', material:'Gold-tone alloy', care:'Wipe clean.', stock:10, availability:'in_stock', published:true, collection_type:'new_arrival', createdAt:'2026-01-22' },
-  { id:'rv016', sku:'RV016', name:'Luna Chain Necklace', slug:'luna-chain-necklace', category:'Chains', subcategory:'Chain', price:289, sale_price:259, currency:'INR', images:[''], art:'chain', description:'A dainty chain with crescent pendant.', material:'Gold-tone alloy', care:'Keep dry.', stock:9, availability:'in_stock', published:true, collection_type:'best_seller', createdAt:'2025-12-15' },
-  { id:'rv017', sku:'RV017', name:'Aurora Bangle', slug:'aurora-bangle', category:'Bracelets', subcategory:'Bangle', price:239, sale_price:null, currency:'INR', images:[''], art:'bracelet', description:'A slim bangle with a soft shimmer.', material:'Gold-tone alloy', care:'Avoid water.', stock:8, availability:'in_stock', published:true, collection_type:'best_seller', createdAt:'2025-11-10' },
-];
-
 function normalizeProduct(row) {
   if (!row) return null;
   const images = Array.isArray(row.images) ? row.images
-  : Array.isArray(row.product_images) ? row.product_images.sort((a,b)=>a.sort_order-b.sort_order).map(i=>i.image_path): [''];
+    : Array.isArray(row.product_images) ? row.product_images.sort((a,b)=>a.sort_order-b.sort_order).map(i=>i.image_path) : [''];
   return {
     id: row.id, sku: row.model_no || row.sku || '', name: row.name || '',
     slug: row.slug || (row.name || '').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''),
@@ -203,9 +404,9 @@ const ProductService = {
       try {
         const rows = await SupabaseREST.select('products', 'select=*,product_images(image_path,alt_text,sort_order)&published=eq.true&order=created_at.desc');
         return rows.map(normalizeProduct).filter(p => p && p.collection_type !== 'unlisted');
-      } catch (e) { console.warn('Supabase read failed, using demo data:', e.message); }
+      } catch (e) { console.warn('Supabase read failed:', e.message); }
     }
-    return DEMO_PRODUCTS.map(normalizeProduct).filter(p => p.collection_type !== 'unlisted');
+    return [];
   },
   async getProductBySlug(slug) { const all = await this.getProducts(); return all.find(p => p.slug === slug) || null; },
 };
@@ -316,6 +517,14 @@ function ToastProvider({ children }) {
 
 const AuthContext = createContext({ user: null, session: null, loading: true, signInWithGoogle: async () => {}, signOut: async () => {} });
 const useAuth = () => useContext(AuthContext);
+let _supabase = null;
+function getSupabaseClient() {
+  if (_supabase) return _supabase;
+  if (!SupabaseREST.isConfigured()) return null;
+  if (!window.supabase || !window.supabase.createClient) return null;
+  _supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_PUBLISHABLE_KEY);
+  return _supabase;
+}
 function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [session, setSession] = useState(null);
@@ -329,7 +538,7 @@ function AuthProvider({ children }) {
   }, []);
   const signInWithGoogle = async () => {
     const sb = getSupabaseClient();
-    if (!sb) { const demo = { email: 'demo@example.com', name: 'Demo Customer' }; setUser(demo); setSession({ access_token: null, user: demo }); return; }
+    if (!sb) throw new Error('Supabase not configured');
     const { error } = await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + window.location.pathname } });
     if (error) throw error;
   };
@@ -441,7 +650,6 @@ function ProductArt({ type = 'necklace', tone = '#FBF6EE', alt = '', className =
       <g transform="translate(22,64)"><Branch/></g><g transform="translate(278,320) scale(-1,-1)"><Branch/></g>
       {ART_MOTIFS[type] || ART_MOTIFS.charm}
       <path d="M247 58c.6 4.6 3.4 7.4 8 8-4.6.6-7.4 3.4-8 8-.6-4.6-3.4-7.4-8-8 4.6-.6 7.4-3.4 8-8Z" fill="#A68A5B" opacity=".85"/>
-      <path d="M56 296c.5 3.8 2.8 6.2 6.6 6.6-3.8.5-6.2 2.8-6.6 6.6-.5-3.8-2.8-6.2-6.6-6.6 3.8-.5 6.2-2.8 6.6-6.6Z" fill="#A68A5B" opacity=".6"/>
     </svg>
   );
 }
@@ -455,9 +663,6 @@ function HeroArt({ className = '' }) {
       <circle cx="1240" cy="285" r="16" fill="none" stroke="#A68A5B" strokeWidth="4"/>
       <path d="M1240 315 C 1226 342, 1254 342, 1240 372 C 1226 342, 1254 342, 1240 315 Z" fill="#DCCBB4" stroke="#A68A5B" strokeWidth="3"/>
       <g transform="translate(880,120)"><Branch/></g><g transform="translate(1560,860) scale(-1,-1)"><Branch/></g>
-      <path d="M960 520c.8 6 4.4 9.6 10.4 10.4-6 .8-9.6 4.4-10.4 10.4-.8-6-4.4-9.6-10.4-10.4 6-.8 9.6-4.4 10.4-10.4Z" fill="#A68A5B" opacity=".85" className="twinkle"/>
-      <path d="M1420 620c.8 6 4.4 9.6 10.4 10.4-6 .8-9.6 4.4-10.4 10.4-.8-6-4.4-9.6-10.4-10.4 6-.8 9.6-4.4 10.4-10.4Z" fill="#A68A5B" opacity=".6" className="twinkle"/>
-      <path d="M1500 180c.6 4.6 3.4 7.4 8 8-4.6.6-7.4 3.4-8 8-.6-4.6-3.4-7.4-8-8 4.6-.6 7.4-3.4 8-8Z" fill="#A68A5B" opacity=".7" className="twinkle"/>
     </svg>
   );
 }
@@ -470,29 +675,13 @@ function ProductImage({ product, tone, className = '', zoom = true, imageIndex =
 }
 const CATEGORY_ICONS = {
   'Necklaces': <g fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M14 8c3 11 17 11 20 0"/><circle cx="24" cy="25" r="5"/></g>,
-  'Earrings': <g fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="16" cy="20" r="7"/><circle cx="32" cy="20" r="7"/><circle cx="16" cy="33" r="2.4" fill="currentColor" stroke="none"/><circle cx="32" cy="33" r="2.4" fill="currentColor" stroke="none"/></g>,
-  'Bracelets': <g fill="none" stroke="currentColor" strokeWidth="2.2"><ellipse cx="24" cy="22" rx="12" ry="11"/><circle cx="24" cy="37" r="2.4" fill="currentColor" stroke="none"/></g>,
+  'Earrings': <g fill="none" stroke="currentColor" strokeWidth="2.2"><circle cx="16" cy="20" r="7"/><circle cx="32" cy="20" r="7"/></g>,
+  'Bracelets': <g fill="none" stroke="currentColor" strokeWidth="2.2"><ellipse cx="24" cy="22" rx="12" ry="11"/></g>,
   'Rings': <g fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinejoin="round"><circle cx="24" cy="29" r="9"/><path d="M24 10l5 5-5 5-5-5Z"/></g>,
   'Chains': <g fill="none" stroke="currentColor" strokeWidth="2.4"><ellipse cx="24" cy="10" rx="6" ry="8"/><ellipse cx="24" cy="24" rx="6" ry="8"/><ellipse cx="24" cy="38" rx="6" ry="8"/></g>,
   'Other Accessories': <path fill="currentColor" d="M24 6c1 7.5 5.5 12 13 13-7.5 1-12 5.5-13 13-1-7.5-5.5-12-13-13 7.5-1 12-5.5 13-13Z"/>,
 };
 function CategoryIcon({ category, className = 'w-6 h-6' }) { return <svg viewBox="0 0 48 48" className={className} aria-hidden="true">{CATEGORY_ICONS[category] || CATEGORY_ICONS['Other Accessories']}</svg>; }
-
-const HERO_FRAME_PATHS = Array.from({ length: 30 }, (_, i) => `./assets/frames/ezgif-frame-${String(i + 1).padStart(3, '0')}.jpg`);
-function HeroScrub() {
-  const [frames, setFrames] = useState(null);
-  const [idx, setIdx] = useState(0);
-  const wrapRef = useRef(null);
-  useEffect(() => { let alive = true; Promise.all(HERO_FRAME_PATHS.map(src => new Promise(resolve => { const img = new Image(); img.onload = () => resolve(src); img.onerror = () => resolve(null); img.src = src; }))).then(list => { if (alive) setFrames(list.filter(Boolean)); }); return () => { alive = false; }; }, []);
-  useEffect(() => {
-    if (!frames || frames.length === 0) return;
-    const onScroll = () => { const el = wrapRef.current; if (!el) return; const r = el.getBoundingClientRect(); const p = Math.min(1, Math.max(0, (-r.top) / (r.height * 0.9))); setIdx(Math.min(frames.length - 1, Math.floor(p * frames.length))); };
-    onScroll(); window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, [frames]);
-  if (!frames || frames.length === 0) return null;
-  return (<div className="hero-scrub-wrap" ref={wrapRef} aria-hidden="true">{frames.map((src, i) => (<img key={src} src={src} alt="" decoding="async" className="hero-scrub-img" style={{ opacity: i === idx ? 1 : 0 }} />))}</div>);
-}
 
 function Btn({ to, href, onClick, variant = 'primary', size = 'md', className, children, disabled, type = 'button', ariaLabel }) {
   const base = 'inline-flex items-center justify-center gap-2 rounded-full font-semibold tracking-[0.18em] uppercase transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.97]';
@@ -535,9 +724,16 @@ function PageHero({ eyebrow, title, subtitle }) {
     </section>
   );
 }
-function Monogram({ className = 'w-10 h-10' }) { return (<svg viewBox="0 0 64 64" className={className} aria-hidden="true"><circle cx="32" cy="32" r="29" fill="#FFFDF9" stroke="#A68A5B" strokeWidth="1.6"/><text x="32" y="43" textAnchor="middle" fontFamily="'Cormorant Garamond',serif" fontSize="32" fontWeight="600" fill="#4A3B2A">R</text></svg>); }
-function BrandMark({ className = 'w-10 h-10' }) { return <Monogram className={className}/>; }
-function Logo({ onClick }) { return (<Link to="/" onClick={onClick} className="flex items-center gap-2.5 group" ariaLabel="Reviora Ornaments — Home"><BrandMark className="w-10 h-10 md:w-11 md:h-11 transition-transform duration-300 group-hover:rotate-3"/><span className="hidden sm:block leading-none"><span className="serif block text-lg md:text-xl tracking-[0.22em] font-semibold">REVÍORA</span><span className="block text-[8px] tracking-[0.5em] text-gold font-semibold mt-1">ORNAMENTS</span></span></Link>); }
+function BrandMark({ className = 'w-10 h-10' }) {
+  const [failed, setFailed] = useState(false);
+  if (failed) {
+    return (<svg viewBox="0 0 64 64" className={className} aria-hidden="true"><circle cx="32" cy="32" r="29" fill="#FFFDF9" stroke="#A68A5B" strokeWidth="1.6"/><text x="32" y="43" textAnchor="middle" fontFamily="'Cormorant Garamond',serif" fontSize="32" fontWeight="600" fill="#4A3B2A">R</text></svg>);
+  }
+  return <img src="./reviora.png" alt="Reviora Ornaments" onError={() => setFailed(true)} className={cx('rounded-full object-cover border border-gold/30 bg-white', className)}/>;
+}
+function Logo({ onClick }) {
+  return (<Link to="/" onClick={onClick} className="flex items-center gap-2.5 group" ariaLabel="Reviora Ornaments — Home"><BrandMark className="w-10 h-10 md:w-11 md:h-11 transition-transform duration-300 group-hover:rotate-3"/><span className="hidden sm:block leading-none"><span className="serif block text-lg md:text-xl tracking-[0.22em] font-semibold">REVÍORA</span><span className="block text-[8px] tracking-[0.5em] text-gold font-semibold mt-1">ORNAMENTS</span></span></Link>);
+}
 function Reveal({ children, delay = 0, className = '' }) {
   const ref = useRef(null);
   useEffect(() => { const el = ref.current; if (!el) return; const obs = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) { el.classList.add('is-visible'); obs.disconnect(); } }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' }); obs.observe(el); return () => obs.disconnect(); }, []);
@@ -571,73 +767,28 @@ function ProductCard({ product }) {
 }
 function SkeletonCard() { return (<div className="fade-up w-full" aria-hidden="true"><div className="aspect-[4/5] rounded-2xl skeleton"/><div className="pt-4 flex flex-col items-center gap-2"><div className="h-2 w-14 rounded skeleton"/><div className="h-3.5 w-28 rounded skeleton"/><div className="h-2.5 w-12 rounded skeleton"/></div></div>); }
 
-/* ProductRow — desktop: 4 visible, arrows scroll one page. Mobile: horizontal swipe. */
 function ProductRow({ products, loading }) {
   const desktopRef = useRef(null);
-  const mobileRef = useRef(null);
   const [canLeft, setCanLeft] = useState(false);
   const [canRight, setCanRight] = useState(false);
-
-  const updateArrows = () => {
-    const el = desktopRef.current; if (!el) return;
-    const maxScroll = el.scrollWidth - el.clientWidth;
-    setCanLeft(el.scrollLeft > 4);
-    setCanRight(el.scrollLeft < maxScroll - 4);
-  };
-  useEffect(() => {
-    const el = desktopRef.current; if (!el) return;
-    updateArrows();
-    el.addEventListener('scroll', updateArrows, { passive: true });
-    window.addEventListener('resize', updateArrows);
-    return () => { el.removeEventListener('scroll', updateArrows); window.removeEventListener('resize', updateArrows); };
-  }, [products, loading]);
-
-  const scrollByPage = (dir) => {
-    const el = desktopRef.current; if (!el) return;
-    el.scrollBy({ left: dir * el.clientWidth, behavior: 'smooth' });
-  };
-
-  if (loading) return (
-    <>
-      <div className="hidden md:grid grid-cols-4 gap-6">{Array.from({length:4}).map((_,i)=><SkeletonCard key={i}/>)}</div>
-      <div className="md:hidden flex gap-4 overflow-hidden">{Array.from({length:2}).map((_,i)=><div key={i} className="shrink-0 w-[68%]"><SkeletonCard/></div>)}</div>
-    </>
-  );
-
+  const updateArrows = () => { const el = desktopRef.current; if (!el) return; const maxScroll = el.scrollWidth - el.clientWidth; setCanLeft(el.scrollLeft > 4); setCanRight(el.scrollLeft < maxScroll - 4); };
+  useEffect(() => { const el = desktopRef.current; if (!el) return; updateArrows(); el.addEventListener('scroll', updateArrows, { passive: true }); window.addEventListener('resize', updateArrows); return () => { el.removeEventListener('scroll', updateArrows); window.removeEventListener('resize', updateArrows); }; }, [products, loading]);
+  const scrollByPage = (dir) => { const el = desktopRef.current; if (!el) return; el.scrollBy({ left: dir * el.clientWidth, behavior: 'smooth' }); };
+  if (loading) return (<><div className="hidden md:grid grid-cols-4 gap-6">{Array.from({length:4}).map((_,i)=><SkeletonCard key={i}/>)}</div><div className="md:hidden flex gap-4 overflow-hidden">{Array.from({length:2}).map((_,i)=><div key={i} className="shrink-0 w-[68%]"><SkeletonCard/></div>)}</div></>);
   if (products.length === 0) return null;
   const showArrows = products.length > 4;
-
   return (
     <div className="relative">
-      {/* Desktop: strictly 4 visible, arrows to see more */}
       <div className="hidden md:block relative">
-        {showArrows && (
-          <button onClick={() => scrollByPage(-1)} aria-label="Scroll left"
-            className={cx('absolute -left-3 top-1/2 -translate-y-1/2 z-10 w-11 h-11 flex items-center justify-center rounded-full bg-ivory border border-beige shadow-md text-cocoa hover:bg-gold hover:text-ivory hover:border-gold transition-all duration-300', !canLeft && 'opacity-0 pointer-events-none')}>
-            <IconArrowLeft className="w-4 h-4"/>
-          </button>
-        )}
-        {showArrows && (
-          <button onClick={() => scrollByPage(1)} aria-label="Scroll right"
-            className={cx('absolute -right-3 top-1/2 -translate-y-1/2 z-10 w-11 h-11 flex items-center justify-center rounded-full bg-ivory border border-beige shadow-md text-cocoa hover:bg-gold hover:text-ivory hover:border-gold transition-all duration-300', !canRight && 'opacity-0 pointer-events-none')}>
-            <IconArrow className="w-4 h-4"/>
-          </button>
-        )}
-        <div ref={desktopRef} className="row-desktop-track no-scrollbar">
-          {products.map(p => (<div key={p.id} className="min-w-0"><ProductCard product={p}/></div>))}
-        </div>
+        {showArrows && (<button onClick={() => scrollByPage(-1)} aria-label="Scroll left" className={cx('absolute -left-3 top-1/2 -translate-y-1/2 z-10 w-11 h-11 flex items-center justify-center rounded-full bg-ivory border border-beige shadow-md text-cocoa hover:bg-gold hover:text-ivory hover:border-gold transition-all duration-300', !canLeft && 'opacity-0 pointer-events-none')}><IconArrowLeft className="w-4 h-4"/></button>)}
+        {showArrows && (<button onClick={() => scrollByPage(1)} aria-label="Scroll right" className={cx('absolute -right-3 top-1/2 -translate-y-1/2 z-10 w-11 h-11 flex items-center justify-center rounded-full bg-ivory border border-beige shadow-md text-cocoa hover:bg-gold hover:text-ivory hover:border-gold transition-all duration-300', !canRight && 'opacity-0 pointer-events-none')}><IconArrow className="w-4 h-4"/></button>)}
+        <div ref={desktopRef} className="row-desktop-track no-scrollbar">{products.map(p => (<div key={p.id} className="min-w-0"><ProductCard product={p}/></div>))}</div>
       </div>
-
-      {/* Mobile: swipe */}
-      <div ref={mobileRef} className="md:hidden row-mobile-track no-scrollbar">
-        {products.map(p => (<div key={p.id}><ProductCard product={p}/></div>))}
-      </div>
+      <div className="md:hidden row-mobile-track no-scrollbar">{products.map(p => (<div key={p.id}><ProductCard product={p}/></div>))}</div>
     </div>
   );
 }
-function EmptyState({ title = 'No pieces found.', subtitle = 'Try another category or clear your filters.', action }) {
-  return (<div className="text-center py-16 md:py-24 fade-up"><IconSparkle className="w-6 h-6 text-gold mx-auto"/><h3 className="serif text-2xl md:text-3xl mt-4">{title}</h3><p className="text-sm text-cocoa/65 mt-2">{subtitle}</p>{action && <div className="mt-6 flex justify-center gap-3">{action}</div>}</div>);
-}
+function EmptyState({ title = 'No pieces found.', subtitle = 'Try another category or clear your filters.', action }) { return (<div className="text-center py-16 md:py-24 fade-up"><IconSparkle className="w-6 h-6 text-gold mx-auto"/><h3 className="serif text-2xl md:text-3xl mt-4">{title}</h3><p className="text-sm text-cocoa/65 mt-2">{subtitle}</p>{action && <div className="mt-6 flex justify-center gap-3">{action}</div>}</div>); }
 function ErrorState({ onRetry }) { return (<div className="text-center py-16"><h3 className="serif text-2xl">Something went wrong.</h3><p className="text-sm text-cocoa/65 mt-2">We couldn't load the collection. Please try again.</p>{onRetry && <div className="mt-6"><Btn variant="outline" onClick={onRetry}>Try Again</Btn></div>}</div>); }
 
 function Header({ searchOpen, setSearchOpen, menuOpen, setMenuOpen }) {
@@ -648,7 +799,7 @@ function Header({ searchOpen, setSearchOpen, menuOpen, setMenuOpen }) {
   const navLink = 'text-[11px] font-semibold tracking-[0.2em] uppercase hover:text-gold transition-colors py-2 relative after:absolute after:left-0 after:-bottom-0.5 after:h-px after:w-0 after:bg-gold hover:after:w-full after:transition-all after:duration-300';
   return (
     <>
-      <div className="bg-cocoa text-center text-[10px] tracking-[0.22em] uppercase py-2 px-4"><span className="shimmer-text">✦ Orders via secure checkout — Google sign-in required ✦</span></div>
+      <div className="bg-cocoa text-center text-[10px] tracking-[0.22em] uppercase py-2 px-4"><span className="shimmer-text">✦ Secure checkout — no account required ✦</span></div>
       <header className={cx('sticky top-0 z-50 bg-white/90 backdrop-blur-md transition-all duration-300', scrolled ? 'border-b border-beige/70 shadow-[0_2px_16px_-8px_rgba(74,59,42,0.18)]' : 'border-b border-beige/40')}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 md:h-[74px] flex items-center justify-between gap-4">
           <div className="flex items-center"><Logo/></div>
@@ -720,7 +871,7 @@ function SearchOverlay({ open, onClose }) {
     <div className="fixed inset-0 z-[70] bg-cream/95 backdrop-blur-md overflow-y-auto" role="dialog" aria-modal="true" aria-label="Search products">
       <div className="max-w-2xl mx-auto px-4 pt-6 md:pt-16 pb-16">
         <div className="flex items-center gap-3">
-          <div className="flex-1 flex items-center gap-3 bg-white border border-beige rounded-full px-5 py-3.5 focus-within:border-gold focus-within:shadow-lg focus-within:shadow-gold/10 transition-all">
+          <div className="flex-1 flex items-center gap-3 bg-white border border-beige rounded-full px-5 py-3.5 focus-within:border-gold transition-all">
             <IconSearch className="w-4 h-4 text-gold shrink-0"/>
             <input ref={inputRef} value={q} onChange={e => setQ(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && q.trim()) viewAll(); }} placeholder="Search pieces, SKUs, categories…" className="flex-1 bg-transparent outline-none text-sm placeholder:text-cocoa/40" aria-label="Search products"/>
           </div>
@@ -731,13 +882,7 @@ function SearchOverlay({ open, onClose }) {
             {results.length === 0 ? (<EmptyState title="No pieces found." subtitle={`Nothing matches “${q.trim()}”.`}/>) : (
               <>
                 <ul className="divide-y divide-beige/50">
-                  {results.map(p => (
-                    <li key={p.id}><Link to={`/product/${p.slug}`} onClick={onClose} className="flex items-center gap-4 py-3.5 group">
-                      <span className="block w-12 h-14 rounded-lg overflow-hidden border border-beige/70 shrink-0 bg-white"><ProductImage product={p}/></span>
-                      <span className="flex-1 min-w-0"><span className="serif text-lg block truncate group-hover:text-gold transition-colors">{p.name}</span><span className="text-[10px] tracking-[0.2em] uppercase text-cocoa/50">{p.sku} · {p.category}</span></span>
-                      <span className="text-sm shrink-0">{hasSale(p) ? formatPrice(effectivePrice(p)) : formatPrice(p.price)}</span>
-                    </Link></li>
-                  ))}
+                  {results.map(p => (<li key={p.id}><Link to={`/product/${p.slug}`} onClick={onClose} className="flex items-center gap-4 py-3.5 group"><span className="block w-12 h-14 rounded-lg overflow-hidden border border-beige/70 shrink-0 bg-white"><ProductImage product={p}/></span><span className="flex-1 min-w-0"><span className="serif text-lg block truncate group-hover:text-gold transition-colors">{p.name}</span><span className="text-[10px] tracking-[0.2em] uppercase text-cocoa/50">{p.sku} · {p.category}</span></span><span className="text-sm shrink-0">{hasSale(p) ? formatPrice(effectivePrice(p)) : formatPrice(p.price)}</span></Link></li>))}
                 </ul>
                 {total > results.length && (<div className="mt-5 text-center"><Btn variant="outline" size="sm" onClick={viewAll}>View all {total} results</Btn></div>)}
               </>
@@ -776,21 +921,9 @@ function Footer() {
     </footer>
   );
 }
-
 function TrustStrip() {
   const items = [{ icon: <IconSparkle className="w-5 h-5"/>, label: 'Premium Quality' }, { icon: <IconHeart className="w-5 h-5"/>, label: 'Timeless Designs' }, { icon: <IconLeaf className="w-5 h-5"/>, label: 'For Every You' }];
   return (<section className="border-y border-beige/60 bg-ivory/60"><div className="max-w-5xl mx-auto px-4 py-6 flex flex-wrap items-center justify-center gap-x-10 gap-y-3">{items.map((it, i) => (<React.Fragment key={it.label}>{i > 0 && <IconSparkle className="w-2 h-2 text-gold/70 hidden sm:block"/>}<span className="flex items-center gap-2.5 text-gold">{it.icon}<span className="text-[10px] font-bold tracking-[0.3em] uppercase text-cocoa/80">{it.label}</span></span></React.Fragment>))}</div></section>);
-}
-function CollectionCard({ category }) {
-  return (
-    <Link to={`/category/${category.slug}`} className="group relative overflow-hidden rounded-3xl border border-beige/70 bg-ivory transition-all duration-300 hover:border-gold/60 hover:shadow-xl hover:shadow-gold/10 hover:-translate-y-1">
-      <div className="aspect-[4/5] overflow-hidden zoom-hover"><div className="w-full h-full"><ProductArt type={artForCategory[category.name]} alt={`${category.name} collection`}/></div></div>
-      <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-ivory via-ivory/85 to-transparent pt-16">
-        <p className="text-[9px] font-bold tracking-[0.3em] uppercase text-gold">Collection</p>
-        <div className="flex items-center justify-between mt-1"><h3 className="serif text-2xl md:text-3xl">{category.name}</h3><span className="w-10 h-10 rounded-full border border-gold/50 text-gold flex items-center justify-center group-hover:bg-gold group-hover:text-ivory group-hover:rotate-45 transition-all duration-300"><IconArrow className="w-4 h-4"/></span></div>
-      </div>
-    </Link>
-  );
 }
 const ALL_CATS = [{ slug:'necklaces', name:'Necklaces' }, { slug:'earrings', name:'Earrings' }, { slug:'bracelets', name:'Bracelets' }, { slug:'rings', name:'Rings' }, { slug:'chains', name:'Chains' }, { slug:'other-accessories', name:'Other Accessories' }];
 
@@ -798,19 +931,15 @@ function Home() {
   useSEO({ title: '', description: DEFAULT_DESCRIPTION });
   const { products, loading } = useCatalog();
   useEffect(() => { Analytics.track('page_view', { page: 'home' }); }, []);
-
-  /* Featured: max 3 items */
   const featured = products.filter(p => isAvailable(p) && p.collection_type === 'featured').slice(0, 3);
   const newIn    = products.filter(p => isAvailable(p) && p.collection_type === 'new_arrival');
   const best     = products.filter(p => isAvailable(p) && p.collection_type === 'best_seller');
   const otherAll = products.filter(p => isAvailable(p) && p.collection_type === 'regular');
-
   return (
     <main>
       <section className="relative overflow-hidden bg-cream">
         <div className="relative h-[86vh] min-h-[560px] md:h-[92vh]">
           <HeroArt className="absolute inset-0 w-full h-full"/>
-          <HeroScrub/>
           <div className="absolute inset-0 bg-gradient-to-r from-cream via-cream/55 to-transparent md:via-cream/35" aria-hidden="true"></div>
           <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-cream to-transparent" aria-hidden="true"></div>
           <div className="hero-content-z relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center">
@@ -829,20 +958,24 @@ function Home() {
           </div>
         </div>
       </section>
-
       <TrustStrip/>
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Featured Collection — max 3 */}
         <section className="pt-16 md:pt-24">
           <Reveal><SectionHeading eyebrow="Curated for you" title="Featured Collection"/></Reveal>
           <Reveal delay={100}>
             <div className="grid sm:grid-cols-3 gap-4 md:gap-6">
-              {featured.map(p => <ProductCard key={p.id} product={p}/>)}
+              {featured.length > 0 ? featured.map(p => <ProductCard key={p.id} product={p}/>) : ALL_CATS.slice(0,3).map(c => (
+                <Link key={c.slug} to={`/category/${c.slug}`} className="group relative overflow-hidden rounded-3xl border border-beige/70 bg-ivory transition-all duration-300 hover:border-gold/60 hover:shadow-xl hover:shadow-gold/10 hover:-translate-y-1">
+                  <div className="aspect-[4/5] overflow-hidden zoom-hover"><div className="w-full h-full"><ProductArt type={artForCategory[c.name]} alt={`${c.name} collection`}/></div></div>
+                  <div className="absolute inset-x-0 bottom-0 p-6 bg-gradient-to-t from-ivory via-ivory/85 to-transparent pt-16">
+                    <p className="text-[9px] font-bold tracking-[0.3em] uppercase text-gold">Collection</p>
+                    <div className="flex items-center justify-between mt-1"><h3 className="serif text-2xl md:text-3xl">{c.name}</h3><span className="w-10 h-10 rounded-full border border-gold/50 text-gold flex items-center justify-center group-hover:bg-gold group-hover:text-ivory group-hover:rotate-45 transition-all duration-300"><IconArrow className="w-4 h-4"/></span></div>
+                  </div>
+                </Link>
+              ))}
             </div>
           </Reveal>
         </section>
-
         <section className="pt-16 md:pt-24">
           <Reveal><SectionHeading eyebrow="Find your thing" title="Shop by Category"/></Reveal>
           <Reveal delay={100}>
@@ -856,42 +989,35 @@ function Home() {
             </div>
           </Reveal>
         </section>
-
         <section className="pt-16 md:pt-24">
           <Reveal><SectionHeading eyebrow="Just landed" title="New Arrivals" align="left" linkTo="/shop" linkLabel="View all"/></Reveal>
           <Reveal delay={100}><ProductRow products={newIn} loading={loading}/></Reveal>
         </section>
-
         <section className="pt-16 md:pt-24">
           <Reveal><SectionHeading eyebrow="Loved by many" title="Best Sellers" align="left" linkTo="/shop" linkLabel="View all"/></Reveal>
           <Reveal delay={100}><ProductRow products={best} loading={loading}/></Reveal>
         </section>
-
         {otherAll.length > 0 && (
           <section className="pt-16 md:pt-24">
             <Reveal><SectionHeading eyebrow="Discover more" title="All Other Products" align="left" linkTo="/shop" linkLabel="View all"/></Reveal>
             <Reveal delay={100}><ProductRow products={otherAll} loading={loading}/></Reveal>
           </section>
         )}
-
         <section className="py-20 md:py-28 text-center">
           <Reveal>
             <IconSparkle className="w-5 h-5 text-gold mx-auto twinkle"/>
             <p className="serif italic text-3xl md:text-[2.75rem] leading-snug max-w-3xl mx-auto mt-6">“Minimal pieces. Maximum personality.”</p>
-            <p className="mt-5 text-cocoa/70 max-w-xl mx-auto leading-relaxed">Reviora is made for your everyday moments — jewellery that whispers, not shouts. More than just jewellery.</p>
+            <p className="mt-5 text-cocoa/70 max-w-xl mx-auto leading-relaxed">Reviora is made for your everyday moments — jewellery that whispers, not shouts.</p>
             <SparkleDivider className="mt-8"/>
           </Reveal>
         </section>
       </div>
-
       <div className="bg-ivory/60 border-y border-beige/50"><div className="max-w-7xl mx-auto"><InstagramCTA/></div></div>
-
       <section className="max-w-3xl mx-auto px-4 sm:px-6 pt-16 md:pt-24">
         <Reveal><SectionHeading eyebrow="Good to know" title="Questions, answered"/></Reveal>
         <Reveal delay={100}><Accordion items={FAQS.slice(0, 4)}/></Reveal>
         <div className="text-center mt-8"><Btn to="/faq" variant="outline" size="sm">View all FAQs</Btn></div>
       </section>
-
       <section className="relative overflow-hidden mt-20 md:mt-28">
         <div className="absolute inset-x-0 bottom-0 h-full flex items-center justify-center" aria-hidden="true"><div className="w-[36rem] h-[36rem] rounded-full bg-beige/35 blur-3xl floaty-slow"></div></div>
         <div className="relative max-w-3xl mx-auto px-4 py-20 md:py-28 text-center fade-up">
@@ -948,13 +1074,12 @@ function Accordion({ items, defaultOpen = 0 }) {
   );
 }
 const FAQS = [
-  { q:'How do I order?', a:'Add pieces to your cart, sign in with Google, complete the checkout form, verify your phone via OTP, and submit. Checkout stays disabled until a payment provider is configured — the site will tell you when it is available.' },
-  { q:'Why do I need to sign in with Google?', a:'A verified account lets us tie your order to you, protect your data, and let you see your own order history. Only Google sign-in is supported for customers.' },
-  { q:'Why do you ask for a phone OTP?', a:'We verify your phone number with a one-time code sent by our server so delivery and order updates reach the right person.' },
+  { q:'How do I order?', a:'Add pieces to your cart, complete the checkout form, and submit. We confirm your order and payment details via Instagram DM shortly after.' },
+  { q:'Do I need to create an account?', a:'No account is required. Just fill the checkout form and submit your order.' },
   { q:'How do I know the price?', a:'Every product page shows the price (and any active sale price) in INR. The cart shows a running subtotal.' },
-  { q:'Can I place an order by DM?', a:'You can always DM us on Instagram — @' + CONFIG.INSTAGRAM_USERNAME + ' — but the recommended flow is the secure checkout on the site.' },
-  { q:'How long does delivery take?', a:'[Placeholder — update before launch] Dispatch within 1–2 business days after payment confirmation; delivery usually 3–7 business days.' },
-  { q:'Do you offer returns?', a:'[Placeholder — update before launch] See our Returns & Exchange page.' },
+  { q:'Can I place an order by DM?', a:'Yes — DM us on Instagram @revioraornaments anytime. The secure checkout on this site is also available.' },
+  { q:'How long does delivery take?', a:'Orders are processed within 1-3 working days after payment is confirmed. Standard delivery takes 4-8 working days after dispatch.' },
+  { q:'Do you offer returns?', a:'Replacements are accepted only for missing, wrong or damaged items — raised within 48 hours of delivery with an unboxing video. See our Returns & Exchange page.' },
   { q:'How should I care for my jewellery?', a:'Keep pieces dry, put them on after perfume and lotion, wipe gently after wear and store them in a pouch.' },
 ];
 
@@ -1035,7 +1160,7 @@ function ProductPage({ slug }) {
   const related = products.filter(p => p.category === product.category && p.id !== product.id && isAvailable(p)).slice(0, 4);
   const imageCount = Math.max(product.images.length, 1);
   const onAdd = () => { const r = addToCart(product, qty); if (r.ok) notify(`${product.name} × ${qty} added to cart`); };
-  const onBuyNow = () => { const r = addToCart(product, qty); if (r.ok) { notify(`Added ${product.name} × ${qty} — taking you to checkout`); navigate('/checkout'); } };
+  const onBuyNow = () => { const r = addToCart(product, qty); if (r.ok) { notify(`Added ${product.name} × ${qty}`); navigate('/checkout'); } };
   const dmHref = CONFIG.WHATSAPP_NUMBER ? `https://wa.me/${CONFIG.WHATSAPP_NUMBER}?text=${encodeURIComponent(`Hi Reviora, I'd like to order: ${product.name} (${product.sku}) × ${qty}`)}` : null;
   return (
     <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-8 pb-16">
@@ -1066,9 +1191,8 @@ function ProductPage({ slug }) {
               <div className="mt-5 grid sm:grid-cols-3 gap-2.5">
                 <Btn variant="primary" className="w-full" disabled={!available} onClick={onBuyNow}>Buy Now</Btn>
                 <Btn variant="gold" className="w-full" disabled={!available} onClick={onAdd}>Add to Cart</Btn>
-                {dmHref ? (<Btn href={dmHref} variant="outline" className="w-full" onClick={() => Analytics.track('dm_click', { sku: product.sku })}>DM to Order</Btn>) : (<button disabled className="w-full rounded-full border border-cocoa/20 text-[11px] font-semibold tracking-[0.18em] uppercase text-cocoa/40 py-3.5 cursor-not-allowed" title="Messaging contact not configured">DM to Order</button>)}
+                {dmHref ? (<Btn href={dmHref} variant="outline" className="w-full">DM to Order</Btn>) : (<a href={INSTAGRAM_DM_URL} target="_blank" rel="noopener noreferrer" className="w-full inline-flex items-center justify-center rounded-full border border-cocoa/30 text-cocoa text-[11px] font-semibold tracking-[0.18em] uppercase py-3.5 hover:border-gold hover:text-gold transition-colors">DM to Order</a>)}
               </div>
-              {!dmHref && <p className="mt-3 text-[10px] text-cocoa/50 italic">Direct messaging isn't configured yet.</p>}
               {!available && <p className="mt-4 text-xs text-cocoa/60">This piece is currently unavailable. Check back soon.</p>}
               <p className="mt-4 text-[11px] text-cocoa/55 flex items-center gap-2"><IconInstagram className="w-3.5 h-3.5 text-gold"/>@{CONFIG.INSTAGRAM_USERNAME}</p>
             </div>
@@ -1086,16 +1210,15 @@ function Login() {
   const { user, signInWithGoogle, signOut } = useAuth();
   const { notify } = useToast();
   useEffect(() => { if (user) navigate('/account'); }, [user]);
-  const handleSignIn = async () => { try { await signInWithGoogle(); notify('Opening Google sign-in…'); } catch (e) { notify(e.message || 'Sign-in failed — check your Supabase configuration'); } };
+  const handleSignIn = async () => { try { await signInWithGoogle(); notify('Opening Google sign-in…'); } catch (e) { notify(e.message || 'Sign-in failed'); } };
   return (
     <main className="max-w-md mx-auto px-4 py-16">
-      <PageHero eyebrow="Account" title="Sign In" subtitle="Only Google sign-in is supported for customers. This keeps your orders and data secure."/>
+      <PageHero eyebrow="Optional" title="Sign In" subtitle="Signing in is optional — it just lets you track your orders. Checkout works without an account."/>
       <div className="rounded-3xl border border-beige bg-ivory p-8 text-center">
         <IconGoogle className="w-10 h-10 mx-auto"/>
         <p className="serif text-2xl mt-4">Continue with Google</p>
-        <p className="text-xs text-cocoa/65 mt-2">We'll create your account automatically if you don't have one.</p>
+        <p className="text-xs text-cocoa/65 mt-2">Optional. You can still order as a guest.</p>
         <button onClick={handleSignIn} className="mt-6 w-full inline-flex items-center justify-center gap-3 rounded-full border border-cocoa/30 hover:border-gold hover:text-gold px-6 py-3.5 text-[11px] font-semibold tracking-[0.2em] uppercase transition-colors"><IconGoogle className="w-4 h-4"/>Continue with Google</button>
-        {!SupabaseREST.isConfigured() && (<p className="mt-5 text-[10px] text-cocoa/50 italic">Supabase isn't configured yet — a demo account will be created for testing.</p>)}
         {user && (<div className="mt-6 text-xs"><p>Signed in as <strong>{user.email}</strong></p><button onClick={signOut} className="mt-3 text-gold underline underline-offset-4">Sign out</button></div>)}
       </div>
     </main>
@@ -1106,51 +1229,40 @@ function Account() {
   const { user, signOut } = useAuth();
   useEffect(() => { if (!user) navigate('/login'); }, [user]);
   if (!user) return null;
-  return (<main className="max-w-3xl mx-auto px-4 py-16"><PageHero eyebrow="Account" title="My Account" subtitle={`Signed in as ${user.email}`}/><div className="rounded-3xl border border-beige bg-ivory p-6"><p className="serif text-xl">Order history</p><p className="text-sm text-cocoa/65 mt-1">Orders you place while signed in will appear here once the Supabase Edge Functions are deployed and orders are stored in Supabase.</p></div><div className="mt-6 text-center"><button onClick={signOut} className="text-[10px] tracking-[0.25em] uppercase text-cocoa/60 hover:text-gold underline underline-offset-4">Sign out</button></div></main>);
+  return (<main className="max-w-3xl mx-auto px-4 py-16"><PageHero eyebrow="Account" title="My Account" subtitle={`Signed in as ${user.email}`}/><div className="rounded-3xl border border-beige bg-ivory p-6"><p className="serif text-xl">Order history</p><p className="text-sm text-cocoa/65 mt-1">Orders placed while signed in will appear here.</p></div><div className="mt-6 text-center"><button onClick={signOut} className="text-[10px] tracking-[0.25em] uppercase text-cocoa/60 hover:text-gold underline underline-offset-4">Sign out</button></div></main>);
 }
 
 function Checkout() {
   useSEO({ title: 'Checkout' });
-  const { user, session, signInWithGoogle } = useAuth();
-  const { items, subtotal, discount, shipping, total } = useCart();
+  const { items, subtotal, discount, shipping, total, clearCart } = useCart();
   const { notify } = useToast();
-  const [form, setForm] = useState({ name: '', address: '', city: '', state: '', postal: '', country: 'India', phone: '', email: user?.email || '', marketing: false });
+  const [form, setForm] = useState({ name: '', address: '', city: '', state: '', postal: '', country: 'India', phone: '', email: '', marketing: false });
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [agreeShipping, setAgreeShipping] = useState(false);
-  const [otpSent, setOtpSent] = useState(false);
-  const [otp, setOtp] = useState('');
-  const [otpVerified, setOtpVerified] = useState(false);
-  const [cooldown, setCooldown] = useState(0);
   const [busy, setBusy] = useState(false);
-  useEffect(() => { if (user && !form.email) setForm(f => ({ ...f, email: user.email })); }, [user]);
-  useEffect(() => { if (cooldown <= 0) return; const t = setTimeout(() => setCooldown(c => c - 1), 1000); return () => clearTimeout(t); }, [cooldown]);
-  if (!user) return (<main className="max-w-md mx-auto px-4 py-16 text-center"><PageHero eyebrow="Checkout" title="Sign in to continue" subtitle="A verified Google account is required so we can link your order securely."/><button onClick={signInWithGoogle} className="inline-flex items-center justify-center gap-3 rounded-full border border-cocoa/30 hover:border-gold hover:text-gold px-6 py-3.5 text-[11px] font-semibold tracking-[0.2em] uppercase transition-colors"><IconGoogle className="w-4 h-4"/>Continue with Google</button></main>);
+  const [success, setSuccess] = useState(null);
+  if (success) return (
+    <main className="max-w-xl mx-auto px-4 py-16 text-center">
+      <IconSparkle className="w-8 h-8 text-gold mx-auto twinkle"/>
+      <h1 className="serif text-4xl mt-6">Thank you!</h1>
+      <p className="text-cocoa/70 mt-3">Your order <strong>{success.order_number}</strong> has been received.</p>
+      <p className="text-sm text-cocoa/60 mt-2">We'll confirm payment and shipping details via Instagram DM shortly.</p>
+      <div className="mt-8 flex justify-center gap-3"><Btn href={INSTAGRAM_DM_URL} variant="outline"><IconInstagram className="w-4 h-4"/>DM us</Btn><Btn to="/shop">Keep Shopping</Btn></div>
+    </main>
+  );
   if (items.length === 0) return (<main className="max-w-md mx-auto px-4 py-16 text-center"><IconSparkle className="w-6 h-6 text-gold mx-auto"/><h1 className="serif text-3xl mt-4">Your cart is empty</h1><p className="text-sm text-cocoa/65 mt-2">Add a piece before checking out.</p><div className="mt-6"><Btn to="/shop">Shop the Collection</Btn></div></main>);
-  const sendOtp = async () => {
-    if (!form.phone) return notify('Please enter your phone number');
-    if (cooldown > 0) return;
-    setBusy(true);
-    try { await EdgeAPI.call('send-otp', { phone: form.phone }); setOtpSent(true); setCooldown(30); }
-    catch (e) { notify(e.message || 'Could not send OTP'); }
-    finally { setBusy(false); }
-  };
-  const verifyOtp = async () => {
-    if (!/^\d{6}$/.test(otp)) return notify('Enter the 6-digit code');
-    setBusy(true);
-    try { const r = await EdgeAPI.call('verify-otp', { phone: form.phone, code: otp }); if (!r.verified) throw new Error(r.error || 'Verification failed'); setOtpVerified(true); notify('Phone verified ✓'); }
-    catch (e) { notify(e.message || 'Verification failed'); }
-    finally { setBusy(false); }
-  };
   const validators = { name: v => v.trim().length >= 2 || 'Enter your full name', address: v => v.trim().length >= 6 || 'Enter your delivery address', city: v => v.trim().length >= 2 || 'Enter your city', state: v => v.trim().length >= 2 || 'Enter your state', postal: v => /^\d{4,10}$/.test(v.trim()) || 'Enter a valid postal code', country: v => v.trim().length >= 2 || 'Enter your country', phone: v => /^\+?\d{6,15}$/.test(v.replace(/\s|-/g,'')) || 'Enter a valid phone number' };
   const submitOrder = async () => {
     for (const [k, test] of Object.entries(validators)) { const r = test(form[k] || ''); if (r !== true) { notify(r); return; } }
-    if (!otpVerified) return notify('Please verify your phone number');
     if (!agreeTerms) return notify('Please accept the Terms & Conditions');
     if (!agreeShipping) return notify('Please accept the Shipping Policy');
-    if (!CONFIG.PAYMENT_CONFIG.enabled) { notify('Checkout is temporarily unavailable — payment provider not yet configured.'); return; }
     setBusy(true);
-    try { const payload = { customer: { ...form, email: user.email }, items: items.map(it => ({ product_id: it.id, qty: it.qty })), agreements: { terms: agreeTerms, shipping: agreeShipping, marketing: form.marketing } }; const r = await EdgeAPI.call('checkout', payload, { userToken: session?.access_token }); if (r.payment_url) window.location.href = r.payment_url; else notify(r.message || 'Order submitted'); }
-    catch (e) { notify(e.message || 'Could not submit order'); }
+    try {
+      const payload = { customer: form, items: items.map(it => ({ product_id: it.id, qty: it.qty })), agreements: { terms: agreeTerms, shipping: agreeShipping, marketing: form.marketing } };
+      const r = await EdgeAPI.call('checkout', payload);
+      if (r.success && r.order_number) { setSuccess({ order_number: r.order_number }); clearCart(); }
+      else notify(r.message || 'Could not place order');
+    } catch (e) { notify(e.message || 'Could not submit order'); }
     finally { setBusy(false); }
   };
   const field = (name, label, type = 'text', extra = {}) => (<label className="block"><span className="text-[10px] font-bold tracking-[0.25em] uppercase text-cocoa/60">{label}</span><input type={type} value={form[name]} {...extra} onChange={e => setForm(f => ({ ...f, [name]: e.target.value }))} className="mt-1.5 w-full bg-white border border-beige rounded-xl px-4 py-3 text-sm outline-none focus:border-gold transition-colors"/></label>);
@@ -1159,12 +1271,11 @@ function Checkout() {
       <Reveal><header className="text-center fade-up mb-10"><p className="text-[10px] font-semibold tracking-[0.35em] uppercase text-gold flex items-center justify-center gap-2"><IconSparkle className="w-2.5 h-2.5"/>Secure Checkout</p><h1 className="serif text-4xl md:text-5xl mt-3">Checkout</h1></header></Reveal>
       <div className="grid lg:grid-cols-[1fr_360px] gap-8">
         <div className="space-y-6">
-          <section className="rounded-3xl border border-beige bg-ivory p-6"><p className="serif text-xl">Delivery details</p><div className="mt-4 grid sm:grid-cols-2 gap-4">{field('name', 'Full name')}{field('email', 'Email (from Google)', 'email', { readOnly: true })}{field('phone', 'Phone (with country code)', 'tel', { placeholder: '+91 99999 99999' })}{field('postal', 'Postal code')}<div className="sm:col-span-2">{field('address', 'Full address')}</div>{field('city', 'City')}{field('state', 'State')}{field('country', 'Country')}</div></section>
-          <section className="rounded-3xl border border-beige bg-ivory p-6"><p className="serif text-xl">Verify your phone</p><p className="text-xs text-cocoa/65 mt-1">We'll send a 6-digit code by SMS. The code is verified on our server.</p><div className="mt-4 flex flex-wrap gap-3 items-center"><button onClick={sendOtp} disabled={busy || cooldown > 0 || otpVerified} className="px-5 py-3 rounded-full bg-cocoa text-ivory text-[10px] font-semibold tracking-[0.2em] uppercase hover:bg-gold transition-colors disabled:opacity-40">{otpVerified ? 'Verified ✓' : cooldown > 0 ? `Resend in ${cooldown}s` : 'Get OTP'}</button>{otpSent && !otpVerified && (<><input value={otp} onChange={e => setOtp(e.target.value.replace(/\D/g,'').slice(0,6))} placeholder="6-digit code" className="w-32 bg-white border border-beige rounded-full px-4 py-2.5 text-sm tracking-[0.3em] text-center outline-none focus:border-gold" inputMode="numeric" maxLength={6}/><button onClick={verifyOtp} disabled={busy} className="px-5 py-3 rounded-full border border-cocoa/30 text-[10px] font-semibold tracking-[0.2em] uppercase hover:border-gold hover:text-gold transition-colors disabled:opacity-40">Verify</button></>)}</div>{!SupabaseREST.isConfigured() && (<p className="mt-3 text-[10px] text-cocoa/50 italic">Supabase isn't configured — OTP functions won't respond until it is.</p>)}</section>
+          <section className="rounded-3xl border border-beige bg-ivory p-6"><p className="serif text-xl">Delivery details</p><div className="mt-4 grid sm:grid-cols-2 gap-4">{field('name', 'Full name')}{field('email', 'Email (optional)', 'email')}{field('phone', 'Phone (with country code)', 'tel', { placeholder: '+91 99999 99999' })}{field('postal', 'Postal code')}<div className="sm:col-span-2">{field('address', 'Full address')}</div>{field('city', 'City')}{field('state', 'State')}{field('country', 'Country')}</div></section>
           <section className="rounded-3xl border border-beige bg-ivory p-6 space-y-3"><p className="serif text-xl">Agreements</p><label className="flex items-start gap-3 text-sm cursor-pointer"><input type="checkbox" className="mt-1 accent-[#A68A5B]" checked={agreeTerms} onChange={e => setAgreeTerms(e.target.checked)}/><span>I agree to the <Link to="/terms" className="text-gold underline underline-offset-4">Terms & Conditions</Link>. <strong className="text-[10px] tracking-[0.2em] uppercase text-gold">Required</strong></span></label><label className="flex items-start gap-3 text-sm cursor-pointer"><input type="checkbox" className="mt-1 accent-[#A68A5B]" checked={agreeShipping} onChange={e => setAgreeShipping(e.target.checked)}/><span>I agree to the <Link to="/shipping" className="text-gold underline underline-offset-4">Shipping Policy</Link>. <strong className="text-[10px] tracking-[0.2em] uppercase text-gold">Required</strong></span></label><label className="flex items-start gap-3 text-sm cursor-pointer"><input type="checkbox" className="mt-1 accent-[#A68A5B]" checked={form.marketing} onChange={e => setForm(f => ({ ...f, marketing: e.target.checked }))}/><span>Send me emails about new products. <span className="text-[10px] tracking-[0.2em] uppercase text-cocoa/50">Optional</span></span></label></section>
-          {!CONFIG.PAYMENT_CONFIG.enabled && (<div className="rounded-3xl border-2 border-dashed border-gold/50 bg-gold/5 p-6 text-center"><IconSparkle className="w-5 h-5 text-gold mx-auto"/><p className="serif text-xl mt-3">Checkout is temporarily unavailable</p><p className="text-sm text-cocoa/70 mt-2 max-w-md mx-auto">A payment provider hasn't been configured yet, so orders can't be submitted. Please DM us on Instagram.</p><div className="mt-4"><Btn href={INSTAGRAM_DM_URL} variant="outline" size="sm"><IconInstagram className="w-3.5 h-3.5"/>DM us on Instagram</Btn></div></div>)}
+          <div className="rounded-3xl border-2 border-dashed border-gold/50 bg-gold/5 p-6 text-center"><IconSparkle className="w-5 h-5 text-gold mx-auto"/><p className="serif text-lg mt-3">Payment is confirmed via Instagram DM</p><p className="text-sm text-cocoa/70 mt-2 max-w-md mx-auto">After you submit, we'll contact you on Instagram with the total and payment details.</p></div>
         </div>
-        <aside className="lg:sticky lg:top-24 h-fit"><div className="rounded-3xl border border-beige bg-ivory p-6"><p className="serif text-xl">Order summary</p><ul className="mt-4 space-y-3 divide-y divide-beige/50">{items.map(it => (<li key={it.id} className="pt-3 first:pt-0 flex gap-3"><span className="block w-12 h-14 rounded-lg overflow-hidden border border-beige/70 shrink-0 bg-white"><ProductImage product={it}/></span><span className="flex-1 min-w-0"><span className="serif text-base block truncate">{it.name}</span><span className="text-[10px] tracking-[0.18em] uppercase text-cocoa/50">{it.sku} · × {it.qty}</span></span><span className="text-sm">{formatPrice(it.lineTotal)}</span></li>))}</ul><dl className="mt-4 pt-4 border-t border-beige/60 space-y-1.5 text-sm"><div className="flex justify-between"><dt className="text-cocoa/60">Subtotal</dt><dd>{formatPrice(subtotal)}</dd></div>{discount > 0 && <div className="flex justify-between text-gold"><dt>Savings</dt><dd>− {formatPrice(discount)}</dd></div>}<div className="flex justify-between"><dt className="text-cocoa/60">Shipping</dt><dd>{shipping === 0 ? 'Free' : formatPrice(shipping)}</dd></div><div className="flex justify-between border-t border-beige/60 pt-2 mt-2"><dt className="text-[10px] tracking-[0.25em] uppercase text-cocoa/60">Total</dt><dd className="serif text-xl">{formatPrice(total)}</dd></div></dl><button onClick={submitOrder} disabled={busy || !CONFIG.PAYMENT_CONFIG.enabled} className="mt-5 w-full rounded-full bg-cocoa text-ivory text-[11px] font-semibold tracking-[0.2em] uppercase py-4 hover:bg-gold transition-colors disabled:opacity-40 disabled:cursor-not-allowed">{CONFIG.PAYMENT_CONFIG.enabled ? 'Place Order' : 'Checkout Unavailable'}</button><p className="mt-3 text-[10px] text-cocoa/50 text-center">Totals are re-validated on the server before payment.</p></div></aside>
+        <aside className="lg:sticky lg:top-24 h-fit"><div className="rounded-3xl border border-beige bg-ivory p-6"><p className="serif text-xl">Order summary</p><ul className="mt-4 space-y-3 divide-y divide-beige/50">{items.map(it => (<li key={it.id} className="pt-3 first:pt-0 flex gap-3"><span className="block w-12 h-14 rounded-lg overflow-hidden border border-beige/70 shrink-0 bg-white"><ProductImage product={it}/></span><span className="flex-1 min-w-0"><span className="serif text-base block truncate">{it.name}</span><span className="text-[10px] tracking-[0.18em] uppercase text-cocoa/50">{it.sku} · × {it.qty}</span></span><span className="text-sm">{formatPrice(it.lineTotal)}</span></li>))}</ul><dl className="mt-4 pt-4 border-t border-beige/60 space-y-1.5 text-sm"><div className="flex justify-between"><dt className="text-cocoa/60">Subtotal</dt><dd>{formatPrice(subtotal)}</dd></div>{discount > 0 && <div className="flex justify-between text-gold"><dt>Savings</dt><dd>− {formatPrice(discount)}</dd></div>}<div className="flex justify-between"><dt className="text-cocoa/60">Shipping</dt><dd>{shipping === 0 ? 'Free' : formatPrice(shipping)}</dd></div><div className="flex justify-between border-t border-beige/60 pt-2 mt-2"><dt className="text-[10px] tracking-[0.25em] uppercase text-cocoa/60">Total</dt><dd className="serif text-xl">{formatPrice(total)}</dd></div></dl><button onClick={submitOrder} disabled={busy} className="mt-5 w-full rounded-full bg-cocoa text-ivory text-[11px] font-semibold tracking-[0.2em] uppercase py-4 hover:bg-gold transition-colors disabled:opacity-40 disabled:cursor-not-allowed">{busy ? 'Submitting…' : 'Place Order'}</button><p className="mt-3 text-[10px] text-cocoa/50 text-center">We'll confirm payment and shipping via Instagram DM.</p></div></aside>
       </div>
     </main>
   );
@@ -1172,7 +1283,7 @@ function Checkout() {
 
 function About() {
   useSEO({ title: 'About Reviora' });
-  return (<main><PageHero eyebrow="Our story" title="About Reviora" subtitle="Minimal jewellery and ornaments, made for her everyday moments."/><Reveal><section className="max-w-2xl mx-auto px-4 prose"><p>Reviora Ornaments began with a simple idea — that the smallest details often complete the whole look. We curate minimal, aesthetic jewellery and ornaments <strong>for women</strong>: pieces that feel premium but stay approachable, timeless but never boring.</p><p>We combine a boutique Instagram presence with a secure, modern checkout.</p><p className="italic">More than just jewellery — it's the detail that makes the moment yours.</p></section></Reveal><section className="text-center mt-16 pb-4"><Btn href={INSTAGRAM_PROFILE_URL} variant="gold" onClick={() => Analytics.track('instagram_click', { context: 'about' })}><IconInstagram className="w-4 h-4"/>Follow — @{CONFIG.INSTAGRAM_USERNAME}</Btn></section></main>);
+  return (<main><PageHero eyebrow="Our story" title="About Reviora" subtitle="Minimal jewellery and ornaments, made for her everyday moments."/><Reveal><section className="max-w-2xl mx-auto px-4 prose"><p>Reviora Ornaments began with a simple idea — that the smallest details often complete the whole look. We curate minimal, aesthetic jewellery and ornaments <strong>for women</strong>: pieces that feel premium but stay approachable, timeless but never boring.</p><p>We combine a boutique Instagram presence with a secure, modern checkout.</p><p className="italic">More than just jewellery — it's the detail that makes the moment yours.</p></section></Reveal><section className="text-center mt-16 pb-4"><Btn href={INSTAGRAM_PROFILE_URL} variant="gold"><IconInstagram className="w-4 h-4"/>Follow — @{CONFIG.INSTAGRAM_USERNAME}</Btn></section></main>);
 }
 function FAQ() {
   useSEO({ title: 'FAQ' });
@@ -1180,11 +1291,44 @@ function FAQ() {
 }
 function Shipping() {
   useSEO({ title: 'Shipping & Delivery' });
-  return (<main><PageHero eyebrow="Good to know" title="Shipping & Delivery"/><Reveal><section className="max-w-2xl mx-auto px-4 prose"><div className="rounded-2xl border border-gold/40 bg-white p-5 mb-8"><p className="text-sm italic text-cocoa/70">📦 Shipping information will be updated here. Please DM us for the latest estimate.</p></div><h2>How shipping works</h2><ul><li>All orders confirmed at checkout before dispatch.</li><li><strong>Processing time:</strong> [update].</li><li><strong>Delivery time:</strong> [update].</li><li><strong>Shipping charges:</strong> Free above ₹999; flat fee below.</li><li><strong>Tracking:</strong> shared once dispatched [update].</li></ul><h2>Order status</h2><p>DM us with your Order ID (e.g. RV-2026-0001) and we'll update you.</p></section></Reveal></main>);
+  return (<main><PageHero eyebrow="Good to know" title="Shipping & Delivery" subtitle="Thank you for shopping with Reviora Ornaments. Here is how your order reaches you."/><Reveal><section className="max-w-2xl mx-auto px-4 prose">
+    <h2>Order Processing</h2>
+    <ul><li>Orders are processed within 1-3 working days after payment is confirmed.</li><li>Orders placed on Sundays or public holidays are processed the next working day.</li></ul>
+    <h2>Delivery Time</h2>
+    <ul><li>Standard delivery takes 4-8 working days after dispatch, depending on your location.</li><li>Remote or restricted pin codes may take longer.</li></ul>
+    <h2>Shipping Charges</h2>
+    <ul><li>Shipping charges, if any, are shown at checkout before you pay.</li><li>Shipping charges are non-refundable once the order has been dispatched.</li></ul>
+    <h2>Tracking</h2>
+    <ul><li>Once shipped, we will share your tracking details on Instagram DM or your registered contact.</li><li>Please allow up to 24 hours after dispatch for tracking to become active.</li></ul>
+    <h2>Delivery Address</h2>
+    <ul><li>Please double-check your address and pin code before placing the order.</li><li>We are not responsible for delays or failed deliveries caused by an incorrect or incomplete address.</li></ul>
+    <h2>Delays</h2>
+    <ul><li>Delays caused by courier partners, weather, strikes or other events outside our control are not our liability, but we will help you follow up.</li></ul>
+    <h2>Receiving Your Parcel</h2>
+    <ul><li>Please record an <strong>unboxing video</strong> while opening your parcel, showing the entire process from the sealed package. It is required for any claim (see Returns & Exchange).</li><li>Do not accept a parcel that is visibly tampered with or damaged; tell us immediately.</li></ul>
+    <p style={{marginTop:'1.5rem',fontStyle:'italic'}}>Instagram: <a href={INSTAGRAM_PROFILE_URL} target="_blank" rel="noopener noreferrer">@revioraornaments</a> (DM us)</p>
+  </section></Reveal></main>);
 }
 function Returns() {
   useSEO({ title: 'Returns & Exchange' });
-  return (<main><PageHero eyebrow="Good to know" title="Returns & Exchange" subtitle="We want you to love every Reviora piece."/><Reveal><section className="max-w-2xl mx-auto px-4 prose"><div className="rounded-2xl border border-gold/40 bg-white p-5 mb-8"><p className="text-sm italic text-cocoa/70">Please check our current return policy before ordering.</p></div><h2>Return policy</h2><ul><li><strong>Return window:</strong> [update].</li><li><strong>Eligibility:</strong> [update].</li><li><strong>How to request:</strong> DM us with Order ID + photos.</li><li><strong>Non-returnable:</strong> [update].</li></ul><h2>Exchanges</h2><ul><li>Subject to stock availability.</li><li><strong>Exchange shipping:</strong> [update].</li></ul></section></Reveal></main>);
+  return (<main><PageHero eyebrow="Good to know" title="Returns & Exchange" subtitle="We value your trust and want you to have a smooth shopping experience. Please read this policy carefully before placing your order."/><Reveal><section className="max-w-2xl mx-auto px-4 prose">
+    <h2>Eligibility</h2>
+    <p>Replacement requests are accepted <strong>only</strong> for:</p>
+    <ul><li>Missing product(s)</li><li>Wrong item received</li><li>Damaged or defective jewellery</li></ul>
+    <h2>Unboxing Video (Mandatory)</h2>
+    <ul><li>You must share an unboxing video that records the <strong>entire process</strong> of opening the fully packed parcel, exactly as you received it.</li><li>The missing, wrong or defective item must be clearly visible in the video.</li><li>Requests without a clear unboxing video cannot be accepted.</li></ul>
+    <h2>Time Limit</h2>
+    <ul><li>Raise your request within <strong>48 hours (2 days)</strong> of receiving the parcel.</li><li>Requests raised after this window will not be accepted.</li></ul>
+    <h2>How to Raise a Request</h2>
+    <ul><li>DM us on Instagram: @revioraornaments</li><li>Share your order details and the unboxing video.</li><li>Include clear photos of the issue.</li></ul>
+    <h2>Review & Processing</h2>
+    <ul><li>Please allow 24-48 working hours for us to review your request after receiving all required details.</li></ul>
+    <h2>Resolution</h2>
+    <ul><li><strong>No refunds</strong> are provided for returns or exchanges. Eligible orders receive a <strong>replacement product</strong>.</li><li>Replaced and exchanged items are non-refundable and cannot be exchanged again.</li><li>For any other issue apart from broken, wrong or missing items, you may contact us and send the article to our warehouse for repair or replacement, within 48 hours of receiving the parcel.</li></ul>
+    <h2>Not Eligible</h2>
+    <ul><li>Change of mind, colour or size preference, or minor variations in shade due to photography or screen settings.</li><li>Damage caused after delivery, such as wear, water, perfume, or improper storage (see Jewellery Care).</li><li>Items without the unboxing video.</li></ul>
+    <p style={{marginTop:'1.5rem',fontStyle:'italic'}}>Instagram: <a href={INSTAGRAM_PROFILE_URL} target="_blank" rel="noopener noreferrer">@revioraornaments</a> (DM us)</p>
+  </section></Reveal></main>);
 }
 function Care() {
   useSEO({ title: 'Jewellery Care' });
@@ -1193,16 +1337,56 @@ function Care() {
 function Contact() {
   useSEO({ title: 'Contact' });
   const cards = [{ icon: <IconInstagram className="w-5 h-5"/>, t: 'Orders & Products', d: 'Questions about a piece — DM us.' }, { icon: <IconSparkle className="w-5 h-5"/>, t: 'Order Status', d: 'Send us your Order ID.' }, { icon: <IconHeart className="w-5 h-5"/>, t: 'Something Else', d: 'Collaborations, gifting or saying hi.' }];
-  return (<main><PageHero eyebrow="We'd love to hear from you" title="Contact Reviora" subtitle="The fastest way to reach us is Instagram."/><Reveal><section className="max-w-4xl mx-auto px-4 grid sm:grid-cols-3 gap-4">{cards.map(c => (<div key={c.t} className="rounded-2xl border border-beige/70 bg-white p-6 text-center transition-all duration-300 hover:border-gold/60 hover:shadow-lg hover:shadow-gold/10 hover:-translate-y-1"><span className="w-11 h-11 rounded-full border border-gold/40 text-gold inline-flex items-center justify-center">{c.icon}</span><p className="serif text-xl mt-3">{c.t}</p><p className="text-xs text-cocoa/65 mt-2 leading-relaxed">{c.d}</p></div>))}</section></Reveal><section className="text-center mt-12 pb-4"><Btn href={INSTAGRAM_DM_URL} variant="gold" size="lg" onClick={() => Analytics.track('instagram_click', { context: 'contact' })}><IconInstagram className="w-4 h-4"/>DM us on Instagram</Btn><p className="mt-3 text-[10px] tracking-[0.25em] uppercase text-cocoa/50">@{CONFIG.INSTAGRAM_USERNAME}</p></section></main>);
+  return (<main><PageHero eyebrow="We'd love to hear from you" title="Contact Reviora" subtitle="The fastest way to reach us is Instagram."/><Reveal><section className="max-w-4xl mx-auto px-4 grid sm:grid-cols-3 gap-4">{cards.map(c => (<div key={c.t} className="rounded-2xl border border-beige/70 bg-white p-6 text-center transition-all duration-300 hover:border-gold/60 hover:shadow-lg hover:shadow-gold/10 hover:-translate-y-1"><span className="w-11 h-11 rounded-full border border-gold/40 text-gold inline-flex items-center justify-center">{c.icon}</span><p className="serif text-xl mt-3">{c.t}</p><p className="text-xs text-cocoa/65 mt-2 leading-relaxed">{c.d}</p></div>))}</section></Reveal><section className="text-center mt-12 pb-4"><Btn href={INSTAGRAM_DM_URL} variant="gold" size="lg"><IconInstagram className="w-4 h-4"/>DM us on Instagram</Btn><p className="mt-3 text-[10px] tracking-[0.25em] uppercase text-cocoa/50">@{CONFIG.INSTAGRAM_USERNAME}</p></section></main>);
 }
 function Terms() {
   useSEO({ title: 'Terms & Conditions' });
-  return (<main><PageHero eyebrow="The fine print" title="Terms & Conditions" subtitle="Last updated: [add date before launch]"/><Reveal><section className="max-w-2xl mx-auto px-4 prose"><h2>1. Ordering</h2><ul><li>Orders via secure checkout or Instagram DM.</li><li>Order final only after availability + payment confirmed.</li></ul><h2>2. Payment</h2><ul><li><strong>Cash on Delivery is not provided.</strong></li><li>Payment through online provider once checkout enabled.</li><li>Dispatch after payment confirmed.</li></ul><h2>3. Prices & Availability</h2><ul><li>All prices in INR.</li><li>Stock is indicative.</li></ul><h2>4. Shipping</h2><p>See <Link to="/shipping" className="text-gold underline underline-offset-4">Shipping & Delivery</Link>.</p><h2>5. Returns</h2><p>See <Link to="/returns" className="text-gold underline underline-offset-4">Returns & Exchange</Link>.</p><h2>6. Privacy</h2><p>See <Link to="/privacy" className="text-gold underline underline-offset-4">Privacy & Cookies</Link>.</p><h2>7. Contact</h2><p>DM us on Instagram — <strong>@{CONFIG.INSTAGRAM_USERNAME}</strong>.</p></section></Reveal></main>);
+  return (<main><PageHero eyebrow="The fine print" title="Terms & Conditions" subtitle="By using this website and placing an order, you agree to these terms."/><Reveal><section className="max-w-2xl mx-auto px-4 prose">
+    <h2>About Us</h2>
+    <p>Reviora Ornaments is an independent reseller. Our products are sourced from Embeyvally (<a href="https://embeyvally.in/" target="_blank" rel="noopener noreferrer">embeyvally.in</a>). Embeyvally runs its own brand promotions separately, while orders, offers and customer support on this website are handled directly by Reviora Ornaments.</p>
+    <h2>Products & Pricing</h2>
+    <ul><li>We try to show colours and details accurately, but slight variations may occur due to lighting and screen settings.</li><li>Prices may change without prior notice. The price at the time of order is final for that order.</li><li>Artificial jewellery is subject to natural wear; please follow our Jewellery Care guidelines.</li></ul>
+    <h2>Orders</h2>
+    <ul><li>An order is confirmed once payment is received and we acknowledge it.</li><li>We may cancel an order due to stock issues, pricing errors or suspected misuse; in that case you will be refunded in full.</li></ul>
+    <h2>Cancellation</h2>
+    <ul><li>We <strong>cannot cancel</strong> an order once it has been dispatched or shipped.</li><li>If an order is cancelled after shipment, the refund is given as <strong>store credit</strong>, with shipping charges deducted. Only the price of the product is credited.</li></ul>
+    <h2>Returns</h2>
+    <p>Returns and exchanges are governed by our <Link to="/returns" className="text-gold underline underline-offset-4">Returns & Exchange</Link> policy.</p>
+    <h2>Intellectual Property</h2>
+    <p>All content on this website, including text, images and branding, belongs to Reviora Ornaments or its respective owners. Do not copy or reuse it without permission.</p>
+    <h2>Limitation of Liability</h2>
+    <ul><li>Our liability is limited to the value of the product ordered.</li><li>We are not responsible for delays or losses caused by courier partners or events beyond our control.</li></ul>
+    <h2>Changes to These Terms</h2>
+    <p>We may update these terms from time to time. The latest version on this page applies.</p>
+    <h2>Governing Law</h2>
+    <p>These terms are governed by the laws of India.</p>
+    <h2>Contact</h2>
+    <p>Instagram: <a href={INSTAGRAM_PROFILE_URL} target="_blank" rel="noopener noreferrer">@revioraornaments</a></p>
+  </section></Reveal></main>);
 }
 function Privacy() {
   useSEO({ title: 'Privacy & Cookies' });
   const { openPreferences, consent } = useConsent();
-  return (<main><PageHero eyebrow="The fine print" title="Privacy & Cookies" subtitle="What we store, why, and how you can change your choices."/><Reveal><section className="max-w-2xl mx-auto px-4 prose"><h2>What we store</h2><ul><li><strong>Necessary:</strong> cart, consent, session.</li><li><strong>Analytics:</strong> optional, off by default.</li><li><strong>Marketing:</strong> optional, off by default.</li></ul><h2>Orders and accounts</h2><ul><li>Cart lives in your browser.</li><li>Order details stored only for fulfilment.</li><li>Sign-in uses Google via Supabase.</li></ul><h2>Your choices</h2><p>Analytics consent: <strong>{consent.analytics ? 'Granted' : 'Denied'}</strong>.</p><p><button onClick={openPreferences} className="text-gold underline underline-offset-4">Open cookie preferences</button></p></section></Reveal></main>);
+  return (<main><PageHero eyebrow="The fine print" title="Privacy & Cookies" subtitle="Your privacy matters to us. This explains what we collect and how we use it."/><Reveal><section className="max-w-2xl mx-auto px-4 prose">
+    <h2>Information We Collect</h2>
+    <ul><li>Name, delivery address, email and contact details you share when ordering.</li><li>Order details and communication with us on Instagram or email.</li><li>Basic browsing data (see Cookies below).</li></ul>
+    <h2>How We Use It</h2>
+    <ul><li>To process, ship and support your orders.</li><li>To share order updates and tracking.</li><li>To improve our website and customer experience.</li><li>To share offers, only if you choose to receive them.</li></ul>
+    <h2>Sharing Your Information</h2>
+    <ul><li>We share only what is needed with courier partners and payment providers to complete your order.</li><li>Our product supplier may receive order-fulfilment details required to dispatch your order.</li><li>We never sell your personal information.</li></ul>
+    <h2>Payments</h2>
+    <p>Payments are handled by secure third-party payment providers. We do not store your card or banking details.</p>
+    <h2>Data Security</h2>
+    <p>We take reasonable steps to protect your information, but no online method is 100% secure.</p>
+    <h2>Your Choices</h2>
+    <p>You can ask us to correct or delete your personal information, or opt out of promotional messages, by messaging us on Instagram.</p>
+    <h2>Cookies</h2>
+    <p>We use cookies to keep the site working and understand how it is used. You can manage this anytime in <button onClick={openPreferences} className="text-gold underline underline-offset-4">Cookie Preferences</button>. Current analytics consent: <strong>{consent.analytics ? 'Granted' : 'Denied'}</strong>.</p>
+    <h2>Updates</h2>
+    <p>We may update this policy from time to time. The latest version on this page applies.</p>
+    <h2>Contact</h2>
+    <p>Instagram: <a href={INSTAGRAM_PROFILE_URL} target="_blank" rel="noopener noreferrer">@revioraornaments</a></p>
+  </section></Reveal></main>);
 }
 function NotFound({ message = 'This page wandered off.' }) {
   useSEO({ title: 'Page Not Found' });
@@ -1244,28 +1428,28 @@ const Root = () => (<ErrorBoundary><RouterProvider><CatalogProvider><ConsentProv
 ReactDOM.createRoot(document.getElementById('root')).render(<Root/>);
 </script>
 
-<script>
-(function () {
-  var REACT = ['https://unpkg.com/react@18.3.1/umd/react.production.min.js','https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js','https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js'];
-  var REACT_DOM = ['https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js','https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js','https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js'];
-  var BABEL = ['https://unpkg.com/@babel/standalone@7.24.7/babel.min.js','https://cdn.jsdelivr.net/npm/@babel/standalone@7.24.7/babel.min.js','https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js'];
-  var TAILWIND = ['https://cdn.tailwindcss.com/3.4.16'];
-  function loadScript(urls, onDone) { var i = 0; (function next() { if (i >= urls.length) return onDone(false); var s = document.createElement('script'); s.src = urls[i++]; s.onload = function () { onDone(true); }; s.onerror = next; document.head.appendChild(s); })(); }
-  function showBootError() { var ld = document.getElementById('boot-loading'); var el = document.getElementById('boot-error'); if (ld) ld.style.display = 'none'; if (el) el.style.display = 'flex'; }
-  loadScript(TAILWIND, function (okTw) {
-    if (okTw && window.tailwind) { tailwind.config = { theme: { extend: { colors: { cream: '#F6EFE5', ivory: '#FFFDF9', cocoa: '#4A3B2A', gold: '#A68A5B', beige: '#DCCBB4' }, fontFamily: { serif: ['"Cormorant Garamond"', 'serif'], sans: ['Manrope', 'sans-serif'] } } } }; }
-    loadScript(REACT, function (okR) {
-      if (!okR) return showBootError();
-      loadScript(REACT_DOM, function (okD) {
-        if (!okD) return showBootError();
-        loadScript(BABEL, function (okB) {
-          if (!okB) return showBootError();
-          try { var src = document.getElementById('reviora-app').textContent; var compiled = Babel.transform(src, { presets: ['react'] }).code; var runner = document.createElement('script'); runner.text = compiled; document.body.appendChild(runner); var ld = document.getElementById('boot-loading'); if (ld) ld.remove(); } catch (e) { console.error(e); showBootError(); }
+  <script>
+    (function () {
+      var REACT = ['https://unpkg.com/react@18.3.1/umd/react.production.min.js', 'https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js'];
+      var REACT_DOM = ['https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js', 'https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js'];
+      var BABEL = ['https://unpkg.com/@babel/standalone@7.24.7/babel.min.js', 'https://cdn.jsdelivr.net/npm/@babel/standalone@7.24.7/babel.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js'];
+      var TAILWIND = ['https://cdn.tailwindcss.com/3.4.16'];
+      function loadScript(urls, onDone) { var i = 0; (function next() { if (i >= urls.length) return onDone(false); var s = document.createElement('script'); s.src = urls[i++]; s.onload = function () { onDone(true); }; s.onerror = next; document.head.appendChild(s); })(); }
+      loadScript(TAILWIND, function (okTw) {
+        if (okTw && window.tailwind) { tailwind.config = { theme: { extend: { colors: { cream: '#F6EFE5', ivory: '#FFFDF9', cocoa: '#4A3B2A', gold: '#A68A5B', beige: '#DCCBB4' }, fontFamily: { serif: ['"Cormorant Garamond"', 'serif'], sans: ['Manrope', 'sans-serif'] } } } }; }
+        loadScript(REACT, function (okR) {
+          if (!okR) return;
+          loadScript(REACT_DOM, function (okD) {
+            if (!okD) return;
+            loadScript(BABEL, function (okB) {
+              if (!okB) return;
+              try { var src = document.getElementById('reviora-app').textContent; var compiled = Babel.transform(src, { presets: ['react'] }).code; var runner = document.createElement('script'); runner.text = compiled; document.body.appendChild(runner); } catch (e) { console.error(e); }
+            });
+          });
         });
       });
-    });
-  });
-})();
-</script>
+    })();
+  </script>
 </body>
+
 </html>
