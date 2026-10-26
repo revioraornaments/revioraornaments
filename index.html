@@ -707,7 +707,7 @@ function Chatbot() {
       });
       const data = await res.json();
       
-      const aiText = data.output || data.text || data.response || (Array.isArray(data) ? data[0].text : 'Sorry, I encountered an error.');
+      const aiText = (Array.isArray(data) ? data[0]?.output : data.output) || 'Sorry, I encountered an error.';
       setMessages(prev => [...prev, { role: 'ai', text: aiText }]);
     } catch (err) {
       setMessages(prev => [...prev, { role: 'ai', text: 'Connection error. Please try again later.' }]);
