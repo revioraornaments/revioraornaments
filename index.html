@@ -699,22 +699,25 @@ function Chatbot() {
     setInput('');
     setLoading(true);
 
-    try {
+        try {
       const res = await fetch(CONFIG.WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: userMsg })
       });
+      
+      if (!res.ok) throw new Error('Network error');
+      
       const data = await res.json();
       
-      const aiText = (Array.isArray(data) ? data[0]?.output : data.output) || 'Sorry, I encountered an error.';
-      setMessages(prev => [...prev, { role: 'ai', text: aiText }]);
+      const aiText = Array.isArray(data) ? data[0]?.output : data?.output;
+      
+      setMessages(prev => [...prev, { role: 'ai', text: aiText || 'No response received.' }]);
     } catch (err) {
       setMessages(prev => [...prev, { role: 'ai', text: 'Connection error. Please try again later.' }]);
     } finally {
       setLoading(false);
     }
-  };
 
   return (
     <div className="max-w-3xl mx-auto px-4 pb-16">
