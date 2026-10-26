@@ -712,7 +712,7 @@ function Chatbot() {
       const data = await res.json();
       
       // Checks if n8n sent an array, and grabs the 'output' text
-      const aiText = Array.isArray(data) ? data[0]?.output : data?.output;
+      const aiText = (Array.isArray(data) ? data[0]?.output : data?.output || '').replace(/^=\s*/, '');
       
       setMessages(prev => [...prev, { role: 'ai', text: aiText || 'No response received.' }]);
     } catch (err) {
