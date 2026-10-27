@@ -603,6 +603,18 @@ ReactDOM.createRoot(document.getElementById('admin-root')).render(<AdminRoot/>);
       });
     })();
   </script>
+<script>
+  // Wait for the React app to fully render before loading the widget
+  window.addEventListener('load', function() {
+    setTimeout(function() {
+      var s = document.createElement('script');
+      s.id = 'omnidimension-web-widget';
+      s.src = 'https://omnidim.io/web_widget.js?secret_key=8ae028a2c9df95f5356c8c767d12e32b';
+      s.async = true;
+      document.body.appendChild(s);
+    }, 1500); // 1.5 second delay - safe for slow connections
+  });
+</script>
 </body>
 
 </html>
