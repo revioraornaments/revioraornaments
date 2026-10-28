@@ -1402,21 +1402,141 @@ ReactDOM.createRoot(document.getElementById('root')).render(<Root/>);
   })();
 </script>
 <script>
-  // Wait for the React app to fully render before loading the widget
-  window.addEventListener('load', function() {
-    setTimeout(function() {
-      var s = document.createElement('script');
-      s.id = 'omnidimension-web-widget';
-      s.src = 'https://omnidim.io/web_widget.js?secret_key=8ae028a2c9df95f5356c8c767d12e32b';
-      s.async = true;
-      document.body.appendChild(s);
-    }, 1500); // 1.5 second delay - safe for slow connections
-  });
+(function () {
+  // ---- CONFIG ----
+  const UPI_ID     = '9691911547@fam';
+  const PAYEE_NAME = 'Reviora Ornaments';
+  const UPI_TEXT   = UPI_ID;
 
-<div id="omni-widget-component" style={{ width: "70%", height: "500px" }}></div>
+  // ---------- helpers ----------
 
-<script id="omnidimension-web-widget" async src="https://omnidim.io/web_widget.js?secret_key=8ae028a2c9df95f5356c8c767d12e32b" ></script>
-<script id="omnidimension-web-widget" async src="https://omnidim.io/web_widget.js?secret_key=8ae028a2c9df95f5356c8c767d12e32b">
+  // Reads the cart total from your React app's localStorage
+  // Cart items are {id, qty} in 'reviora_cart_v2'.
+  // Prices are fetched fresh from Supabase products table.
+  async function getCartTotal() {
+    let raw = [];
+    try {
+      raw = JSON.parse(localStorage.getItem('reviora_cart_v2') || '[]');
+    } catch (e) { raw = []; }
+    if (!raw.length) return 0;
+
+    // Fetch product prices from Supabase (same public keys as your app)
+    const SUPABASE_URL  = 'https://hdehdkofypgjiaakbzoz.supabase.co';
+    const SUPABASE_KEY  = 'sb_publishable_4dviwRWhXlVF9-6X7LR57A_SJHy3NNZ';
+    const ids = raw.map(r => r.id).filter(Boolean);
+    if (!ids.length) return 0;
+
+    const q = `select=id,price,sale_price&id=in.(${ids.join(',')})`;
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/products?${q}`, {
+        headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
+      });
+      if (!res.ok) return 0;
+      const rows = await res.json();
+
+      let subtotal = 0;
+      for (const item of raw) {
+        const p = rows.find(r => r.id === item.id);
+        if (!p) continue;
+        const price = Number(p.sale_price ?? p.price) || 0;
+        subtotal += price * (Number(item.qty) || 1);
+      }
+
+      // Same shipping rule as your app: free ≥ ₹999, else ₹59
+      const shipping = subtotal === 0 ? 0 : subtotal >= 999 ? 0 : 59;
+      return Math.round((subtotal + shipping) * 100) / 100;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  // Build the UPI deep-link with a locked amount
+  function buildUpiLink(amount) {
+    const params = new URLSearchParams({
+      pa: UPI_ID,
+      pn: PAYEE_NAME,
+      cu: 'INR',
+      am: amount.toFixed(2)   // <-- locked amount, user cannot change it
+    });
+    return 'upi://pay?' + params.toString();
+  }
+
+  // ---------- DOM patch ----------
+
+  let tries = 0;
+  const timer = setInterval(async () => {
+    tries++;
+
+    // Find the UPI ID text node (exactly matches your CONFIG.UPI_ID)
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null);
+    let node;
+    while ((node = walker.nextNode())) {
+      if (node.nodeValue && node.nodeValue.trim() === UPI_TEXT) {
+
+        // Skip if already patched
+        if (node.parentElement?.closest('a[data-upi-link]')) {
+          clearInterval(timer);
+          return;
+        }
+
+        // Work out the total up-front, then wire up the click
+        const total = await getCartTotal();
+
+        const a = document.createElement('a');
+        a.setAttribute('data-upi-link', 'true');
+        a.style.cssText = 'display:inline-block;text-decoration:underline;text-underline-offset:4px;cursor:pointer;';
+
+        // Preserve the original <strong>
+        const strong = node.parentElement;
+        if (strong && strong.tagName === 'STRONG') {
+          strong.replaceWith(a);
+          a.appendChild(strong);
+        } else {
+          const parent = node.parentElement;
+          a.appendChild(node.cloneNode(true));
+          parent.replaceChild(a, node);
+        }
+
+        // Insert the locked "Pay via UPI App" button below
+        const payLine = a.closest('p') || a.parentElement;
+        if (payLine && !payLine.parentElement.querySelector('[data-upi-btn]')) {
+          const btn = document.createElement('a');
+          btn.setAttribute('data-upi-btn', 'true');
+          btn.style.cssText =
+            'display:inline-block;margin-top:14px;padding:12px 28px;' +
+            'background:#4A3B2A;color:#FFFDF9;border-radius:9999px;' +
+            'font-size:11px;font-weight:600;letter-spacing:0.18em;' +
+            'text-transform:uppercase;text-decoration:none;transition:background .3s;';
+
+          // Lock the amount now (button label shows the total)
+          if (total > 0) {
+            const lockedLink = buildUpiLink(total);
+            btn.href = lockedLink;
+            a.href   = lockedLink;
+            btn.textContent = `Pay ₹${total.toFixed(2)} via UPI App`;
+          } else {
+            btn.textContent = 'Pay via UPI App';
+            btn.addEventListener('click', async (e) => {
+              e.preventDefault();
+              const t = await getCartTotal();
+              if (t <= 0) { alert('Your cart is empty.'); return; }
+              window.location.href = buildUpiLink(t);
+            });
+          }
+
+          btn.addEventListener('mouseenter', () => btn.style.background = '#A68A5B');
+          btn.addEventListener('mouseleave', () => btn.style.background = '#4A3B2A');
+          payLine.parentElement.insertBefore(btn, payLine.nextSibling);
+        }
+
+        clearInterval(timer);
+        return;
+      }
+    }
+
+    if (tries >= 80) clearInterval(timer); // give up after ~20 s
+  }, 250);
+})();
 </script>
 </body>
 </html>
