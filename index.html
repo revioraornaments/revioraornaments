@@ -1677,5 +1677,123 @@ ReactDOM.createRoot(document.getElementById('root')).render(<Root/>);
 })();
 </script>
 <!-- ═══════════════ END UPI / QR PATCH ═══════════════ -->
-</body></body>
+<!-- ═══════════════ HEADER VIDEO — paste just before </body> ═══════════════ -->
+<script>
+(function () {
+  // ─────────────────────── CONFIG ───────────────────────
+  const VIDEO_FILE = 'header-graphic.mp4';
+  // 'hero'  → replaces the HeroArt SVG on the homepage hero (recommended)
+  // 'above' → full-width banner above everything else on every page
+  const MODE = 'hero';
+  // ──────────────────────────────────────────────────────
+
+  const VIDEO_URL = './' + VIDEO_FILE;
+
+  function makeVideo(extraStyle = '') {
+    const v = document.createElement('video');
+    v.src = VIDEO_URL;
+    v.autoplay = true;
+    v.loop = true;
+    v.muted = true;
+    v.playsInline = true;
+    v.setAttribute('muted', '');
+    v.setAttribute('playsinline', '');
+    v.setAttribute('webkit-playsinline', '');
+    v.preload = 'auto';
+    v.style.cssText = extraStyle;
+    // iOS sometimes needs an explicit play() call
+    v.addEventListener('loadeddata', () => { const p = v.play(); if (p) p.catch(() => {}); });
+    return v;
+  }
+
+  // ── MODE 'above': full-width banner on every page ──
+  function injectAboveBanner() {
+    const header = document.querySelector('header.sticky');
+    if (!header) return false;
+
+    const wrap = document.createElement('div');
+    wrap.setAttribute('data-reviora-header-video', 'true');
+    wrap.style.cssText =
+      'width:100%;max-height:42vh;overflow:hidden;background:#F6EFE5;' +
+      'display:flex;align-items:center;justify-content:center;';
+
+    const video = makeVideo(
+      'width:100%;height:100%;object-fit:cover;display:block;'
+    );
+    video.onerror = () => { console.warn('[header-video] not found at', VIDEO_URL); wrap.remove(); };
+
+    wrap.appendChild(video);
+    header.parentElement.insertBefore(wrap, header);
+    return true;
+  }
+
+  // ── MODE 'hero': replace HeroArt SVG inside the homepage hero ──
+  function injectHeroReplacement() {
+    const heroSection = document.querySelector('main section.relative.overflow-hidden.bg-cream');
+    if (!heroSection) return false;
+
+    // Find the existing SVG illustration (HeroArt renders an <svg> that fills the hero)
+    const oldArt = heroSection.querySelector('svg[aria-label="Reviora necklace illustration"]');
+    if (!oldArt) return false;
+
+    const video = makeVideo(
+      'position:absolute;inset:0;width:100%;height:100%;' +
+      'object-fit:cover;object-position:center;z-index:0;'
+    );
+    video.onerror = () => { console.warn('[header-video] not found at', VIDEO_URL); video.remove(); };
+
+    // Preserve the gradient overlays by inserting the video just before the old SVG
+    oldArt.parentElement.insertBefore(video, oldArt);
+    oldArt.style.display = 'none';
+    return true;
+  }
+
+  // ── Wait for React to render, then inject ──
+  let tries = 0;
+  const MAX_TRIES = 80;
+  const timer = setInterval(() => {
+    tries++;
+
+    // Skip if already injected
+    if (document.querySelector('[data-reviora-header-video]')) { clearInterval(timer); return; }
+    if (document.querySelector('video[src$="' + VIDEO_FILE + '"]')) { clearInterval(timer); return; }
+
+    let done = false;
+    if (MODE === 'above') {
+      done = injectAboveBanner();
+    } else {
+      // 'hero' mode only makes sense on the homepage
+      const isHome = !window.location.hash || window.location.hash === '#' || window.location.hash === '#/';
+      if (isHome) done = injectHeroReplacement();
+      else { done = false; } // keep waiting if user navigates home later
+    }
+
+    if (done) {
+      clearInterval(timer);
+      console.log('[header-video] injected:', VIDEO_URL);
+    }
+
+    if (tries >= MAX_TRIES) clearInterval(timer);
+  }, 250);
+
+  // Re-inject on hash navigation (SPA route changes)
+  window.addEventListener('hashchange', () => {
+    if (MODE !== 'hero') return;
+    // Remove stale video if user left home
+    const isHome = !window.location.hash || window.location.hash === '#' || window.location.hash === '#/';
+    const existing = document.querySelector('video[src$="' + VIDEO_FILE + '"]');
+    if (!isHome && existing) existing.remove();
+    if (isHome && !existing) {
+      let t = 0;
+      const again = setInterval(() => {
+        t++;
+        if (injectHeroReplacement()) clearInterval(again);
+        if (t > 20) clearInterval(again);
+      }, 250);
+    }
+  });
+})();
+</script>
+<!-- ═══════════════ END HEADER VIDEO ═══════════════ -->
+</body>
 </html>
