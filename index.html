@@ -1401,399 +1401,55 @@ ReactDOM.createRoot(document.getElementById('root')).render(<Root/>);
     });
   })();
 </script>
+
 <script>
 (function () {
-  // ---- CONFIG ----
-  const UPI_ID     = '9691911547@fam';
-  const PAYEE_NAME = 'Reviora Ornaments';
-  const UPI_TEXT   = UPI_ID;
-
-  // ---------- helpers ----------
-
-  // Reads the cart total from your React app's localStorage
-  // Cart items are {id, qty} in 'reviora_cart_v2'.
-  // Prices are fetched fresh from Supabase products table.
-  async function getCartTotal() {
-    let raw = [];
-    try {
-      raw = JSON.parse(localStorage.getItem('reviora_cart_v2') || '[]');
-    } catch (e) { raw = []; }
-    if (!raw.length) return 0;
-
-    // Fetch product prices from Supabase (same public keys as your app)
-    const SUPABASE_URL  = 'https://hdehdkofypgjiaakbzoz.supabase.co';
-    const SUPABASE_KEY  = 'sb_publishable_4dviwRWhXlVF9-6X7LR57A_SJHy3NNZ';
-    const ids = raw.map(r => r.id).filter(Boolean);
-    if (!ids.length) return 0;
-
-    const q = `select=id,price,sale_price&id=in.(${ids.join(',')})`;
-    try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/products?${q}`, {
-        headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
-      });
-      if (!res.ok) return 0;
-      const rows = await res.json();
-
-      let subtotal = 0;
-      for (const item of raw) {
-        const p = rows.find(r => r.id === item.id);
-        if (!p) continue;
-        const price = Number(p.sale_price ?? p.price) || 0;
-        subtotal += price * (Number(item.qty) || 1);
-      }
-
-      // Same shipping rule as your app: free ≥ ₹999, else ₹59
-      const shipping = subtotal === 0 ? 0 : subtotal >= 999 ? 0 : 59;
-      return Math.round((subtotal + shipping) * 100) / 100;
-    } catch (e) {
-      return 0;
-    }
-  }
-
-  // Build the UPI deep-link with a locked amount
-  function buildUpiLink(amount) {
-    const params = new URLSearchParams({
-      pa: UPI_ID,
-      pn: PAYEE_NAME,
-      cu: 'INR',
-      am: amount.toFixed(2)   // <-- locked amount, user cannot change it
-    });
-    return 'upi://pay?' + params.toString();
-  }
-
-  // ---------- DOM patch ----------
-
-  let tries = 0;
-  const timer = setInterval(async () => {
-    tries++;
-
-    // Find the UPI ID text node (exactly matches your CONFIG.UPI_ID)
-    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null);
-    let node;
-    while ((node = walker.nextNode())) {
-      if (node.nodeValue && node.nodeValue.trim() === UPI_TEXT) {
-
-        // Skip if already patched
-        if (node.parentElement?.closest('a[data-upi-link]')) {
-          clearInterval(timer);
-          return;
-        }
-
-        // Work out the total up-front, then wire up the click
-        const total = await getCartTotal();
-
-        const a = document.createElement('a');
-        a.setAttribute('data-upi-link', 'true');
-        a.style.cssText = 'display:inline-block;text-decoration:underline;text-underline-offset:4px;cursor:pointer;';
-
-        // Preserve the original <strong>
-        const strong = node.parentElement;
-        if (strong && strong.tagName === 'STRONG') {
-          strong.replaceWith(a);
-          a.appendChild(strong);
-        } else {
-          const parent = node.parentElement;
-          a.appendChild(node.cloneNode(true));
-          parent.replaceChild(a, node);
-        }
-
-        // Insert the locked "Pay via UPI App" button below
-        const payLine = a.closest('p') || a.parentElement;
-        if (payLine && !payLine.parentElement.querySelector('[data-upi-btn]')) {
-          const btn = document.createElement('a');
-          btn.setAttribute('data-upi-btn', 'true');
-          btn.style.cssText =
-            'display:inline-block;margin-top:14px;padding:12px 28px;' +
-            'background:#4A3B2A;color:#FFFDF9;border-radius:9999px;' +
-            'font-size:11px;font-weight:600;letter-spacing:0.18em;' +
-            'text-transform:uppercase;text-decoration:none;transition:background .3s;';
-
-          // Lock the amount now (button label shows the total)
-          if (total > 0) {
-            const lockedLink = buildUpiLink(total);
-            btn.href = lockedLink;
-            a.href   = lockedLink;
-            btn.textContent = `Pay ₹${total.toFixed(2)} via UPI App`;
-          } else {
-            btn.textContent = 'Pay via UPI App';
-            btn.addEventListener('click', async (e) => {
-              e.preventDefault();
-              const t = await getCartTotal();
-              if (t <= 0) { alert('Your cart is empty.'); return; }
-              window.location.href = buildUpiLink(t);
-            });
-          }
-
-          btn.addEventListener('mouseenter', () => btn.style.background = '#A68A5B');
-          btn.addEventListener('mouseleave', () => btn.style.background = '#4A3B2A');
-          payLine.parentElement.insertBefore(btn, payLine.nextSibling);
-        }
-
-        clearInterval(timer);
-        return;
-      }
-    }
-
-    if (tries >= 80) clearInterval(timer); // give up after ~20 s
-  }, 250);
-})();
-</script>
-<!-- ═══════════════ UPI / QR PATCH — paste just before </body> ═══════════════ -->
-<script>
-(function () {
-  // ─────────────────────────── CONFIG ───────────────────────────
-  const UPI_ID     = '9691911547@fam';
-  const PAYEE_NAME = 'Reviora Ornaments';     // must match FamPay account name
-  const UPI_TEXT   = UPI_ID;                  // text to search in DOM
-
-  const SUPABASE_URL = 'https://hdehdkofypgjiaakbzoz.supabase.co';
-  const SUPABASE_KEY = 'sb_publishable_4dviwRWhXlVF9-6X7LR57A_SJHy3NNZ';
-
-  // ─────────────────────── cart total helper ───────────────────────
-  async function getCartTotal() {
-    let raw = [];
-    try { raw = JSON.parse(localStorage.getItem('reviora_cart_v2') || '[]'); }
-    catch (e) { raw = []; }
-    if (!Array.isArray(raw) || raw.length === 0) return 0;
-
-    const ids = raw.map(r => r.id).filter(Boolean);
-    if (!ids.length) return 0;
-
-    const q = `select=id,price,sale_price&id=in.(${ids.join(',')})`;
-    try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/products?${q}`, {
-        headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
-      });
-      if (!res.ok) return 0;
-      const rows = await res.json();
-
-      let subtotal = 0;
-      for (const item of raw) {
-        const p = rows.find(r => r.id === item.id);
-        if (!p) continue;
-        const price = Number(p.sale_price ?? p.price) || 0;
-        subtotal += price * (Number(item.qty) || 1);
-      }
-
-      // Same rule as your CartProvider: free ≥ ₹999, else ₹59
-      const shipping = subtotal === 0 ? 0 : subtotal >= 999 ? 0 : 59;
-      return Math.round((subtotal + shipping) * 100) / 100;
-    } catch (e) {
-      console.warn('[UPI patch] cart total fetch failed:', e);
-      return 0;
-    }
-  }
-
-  // ─────────────────────── deep-link builder ───────────────────────
-  function buildUpiLink(amount) {
-    const params = new URLSearchParams({
-      pa: UPI_ID,
-      pn: PAYEE_NAME,
-      cu: 'INR'
-    });
-    if (amount > 0) params.set('am', amount.toFixed(2));   // locked amount
-    return 'upi://pay?' + params.toString();
-  }
-
-  // ─────────────────────── DOM patch ───────────────────────
-  let tries = 0;
-  const MAX_TRIES = 80;                // 80 × 250 ms = 20 s
-  let done = false;
-
-  const timer = setInterval(async () => {
-    if (done) return;
-    tries++;
-
-    // Find the text node containing the UPI ID
-    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null);
-    let node;
-    while ((node = walker.nextNode())) {
-      if (!node.nodeValue || node.nodeValue.trim() !== UPI_TEXT) continue;
-
-      // Already patched? bail out
-      if (node.parentElement?.closest('[data-upi-link]')) { done = true; clearInterval(timer); return; }
-
-      done = true;
-      clearInterval(timer);
-
-      const total = await getCartTotal();
-      const link  = buildUpiLink(total);
-
-      // ── 1. Wrap the existing UPI ID element in an <a> ──
-      const parent = node.parentElement;
-      const anchor = document.createElement('a');
-      anchor.setAttribute('data-upi-link', 'true');
-      anchor.href = link;
-      anchor.style.cssText = 'text-decoration:underline;text-underline-offset:4px;cursor:pointer;';
-
-      if (parent && parent.tagName === 'STRONG') {
-        parent.replaceWith(anchor);
-        anchor.appendChild(parent);
-      } else {
-        // wrap the bare text node
-        const clone = node.cloneNode(true);
-        anchor.appendChild(clone);
-        parent.replaceChild(anchor, node);
-      }
-
-      // ── 2. Insert the "Pay ₹XXX via UPI App" button ──
-      const payLine = anchor.closest('p') || anchor.parentElement;
-      if (payLine && !payLine.parentElement.querySelector('[data-upi-btn]')) {
-        const btn = document.createElement('a');
-        btn.setAttribute('data-upi-btn', 'true');
-        btn.href = link;
-        btn.style.cssText =
-          'display:inline-block;margin-top:14px;padding:12px 28px;' +
-          'background:#4A3B2A;color:#FFFDF9;border-radius:9999px;' +
-          'font-size:11px;font-weight:600;letter-spacing:0.18em;' +
-          'text-transform:uppercase;text-decoration:none;' +
-          'transition:background .3s;cursor:pointer;';
-
-        if (total > 0) {
-          btn.textContent = `Pay ₹${total.toFixed(2)} via UPI App`;
-        } else {
-          // Cart empty → still show button, but compute total on click
-          btn.textContent = 'Pay via UPI App';
-          btn.addEventListener('click', async (e) => {
-            e.preventDefault();
-            const t = await getCartTotal();
-            if (t <= 0) { alert('Your cart is empty. Please add an item first.'); return; }
-            window.location.href = buildUpiLink(t);
-          });
-        }
-
-        btn.addEventListener('mouseenter', () => btn.style.background = '#A68A5B');
-        btn.addEventListener('mouseleave', () => btn.style.background = '#4A3B2A');
-
-        payLine.parentElement.insertBefore(btn, payLine.nextSibling);
-      }
-
-      console.log('[UPI patch] applied. Locked total = ₹' + total.toFixed(2));
-      return;
-    }
-
-    if (tries >= MAX_TRIES) clearInterval(timer);
-  }, 250);
-})();
-</script>
-<!-- ═══════════════ END UPI / QR PATCH ═══════════════ -->
-<!-- ═══════════════ HEADER VIDEO — paste just before </body> ═══════════════ -->
-<script>
-(function () {
-  // ─────────────────────── CONFIG ───────────────────────
   const VIDEO_FILE = 'header-graphic.mp4';
-  // 'hero'  → replaces the HeroArt SVG on the homepage hero (recommended)
-  // 'above' → full-width banner above everything else on every page
-  const MODE = 'hero';
-  // ──────────────────────────────────────────────────────
+  const VIDEO_URL  = './' + VIDEO_FILE;
 
-  const VIDEO_URL = './' + VIDEO_FILE;
-
-  function makeVideo(extraStyle = '') {
+  function makeVideo(extraStyle) {
     const v = document.createElement('video');
     v.src = VIDEO_URL;
-    v.autoplay = true;
-    v.loop = true;
-    v.muted = true;
-    v.playsInline = true;
-    v.setAttribute('muted', '');
-    v.setAttribute('playsinline', '');
-    v.setAttribute('webkit-playsinline', '');
+    v.autoplay = true; v.loop = true; v.muted = true; v.playsInline = true;
+    v.setAttribute('muted', ''); v.setAttribute('playsinline', ''); v.setAttribute('webkit-playsinline', '');
     v.preload = 'auto';
     v.style.cssText = extraStyle;
-    // iOS sometimes needs an explicit play() call
-    v.addEventListener('loadeddata', () => { const p = v.play(); if (p) p.catch(() => {}); });
+    v.addEventListener('loadeddata', () => { const p = v.play(); if (p) p.catch(()=>{}); });
     return v;
   }
 
-  // ── MODE 'above': full-width banner on every page ──
-  function injectAboveBanner() {
-    const header = document.querySelector('header.sticky');
-    if (!header) return false;
-
-    const wrap = document.createElement('div');
-    wrap.setAttribute('data-reviora-header-video', 'true');
-    wrap.style.cssText =
-      'width:100%;max-height:42vh;overflow:hidden;background:#F6EFE5;' +
-      'display:flex;align-items:center;justify-content:center;';
-
-    const video = makeVideo(
-      'width:100%;height:100%;object-fit:cover;display:block;'
-    );
-    video.onerror = () => { console.warn('[header-video] not found at', VIDEO_URL); wrap.remove(); };
-
-    wrap.appendChild(video);
-    header.parentElement.insertBefore(wrap, header);
-    return true;
-  }
-
-  // ── MODE 'hero': replace HeroArt SVG inside the homepage hero ──
-  function injectHeroReplacement() {
-    const heroSection = document.querySelector('main section.relative.overflow-hidden.bg-cream');
-    if (!heroSection) return false;
-
-    // Find the existing SVG illustration (HeroArt renders an <svg> that fills the hero)
-    const oldArt = heroSection.querySelector('svg[aria-label="Reviora necklace illustration"]');
+  function injectHeroVideo() {
+    const hero = document.querySelector('main section.relative.overflow-hidden.bg-cream');
+    if (!hero) return false;
+    if (hero.querySelector('video[src$="' + VIDEO_FILE + '"]')) return true;
+    const oldArt = hero.querySelector('svg[aria-label="Reviora necklace illustration"]');
     if (!oldArt) return false;
-
-    const video = makeVideo(
-      'position:absolute;inset:0;width:100%;height:100%;' +
-      'object-fit:cover;object-position:center;z-index:0;'
-    );
-    video.onerror = () => { console.warn('[header-video] not found at', VIDEO_URL); video.remove(); };
-
-    // Preserve the gradient overlays by inserting the video just before the old SVG
+    const video = makeVideo('position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;z-index:0;');
+    video.onerror = () => { console.warn('[video] 404 at', VIDEO_URL); video.remove(); };
     oldArt.parentElement.insertBefore(video, oldArt);
     oldArt.style.display = 'none';
     return true;
   }
 
-  // ── Wait for React to render, then inject ──
   let tries = 0;
-  const MAX_TRIES = 80;
-  const timer = setInterval(() => {
+  const t1 = setInterval(() => {
     tries++;
-
-    // Skip if already injected
-    if (document.querySelector('[data-reviora-header-video]')) { clearInterval(timer); return; }
-    if (document.querySelector('video[src$="' + VIDEO_FILE + '"]')) { clearInterval(timer); return; }
-
-    let done = false;
-    if (MODE === 'above') {
-      done = injectAboveBanner();
-    } else {
-      // 'hero' mode only makes sense on the homepage
-      const isHome = !window.location.hash || window.location.hash === '#' || window.location.hash === '#/';
-      if (isHome) done = injectHeroReplacement();
-      else { done = false; } // keep waiting if user navigates home later
-    }
-
-    if (done) {
-      clearInterval(timer);
-      console.log('[header-video] injected:', VIDEO_URL);
-    }
-
-    if (tries >= MAX_TRIES) clearInterval(timer);
+    const isHome = !location.hash || location.hash === '#' || location.hash === '#/';
+    if (isHome && injectHeroVideo()) { clearInterval(t1); console.log('[video] injected'); }
+    if (tries >= 80) clearInterval(t1);
   }, 250);
 
-  // Re-inject on hash navigation (SPA route changes)
   window.addEventListener('hashchange', () => {
-    if (MODE !== 'hero') return;
-    // Remove stale video if user left home
-    const isHome = !window.location.hash || window.location.hash === '#' || window.location.hash === '#/';
-    const existing = document.querySelector('video[src$="' + VIDEO_FILE + '"]');
-    if (!isHome && existing) existing.remove();
-    if (isHome && !existing) {
-      let t = 0;
-      const again = setInterval(() => {
-        t++;
-        if (injectHeroReplacement()) clearInterval(again);
-        if (t > 20) clearInterval(again);
-      }, 250);
+    const isHome = !location.hash || location.hash === '#' || location.hash === '#/';
+    if (!isHome) {
+      const v = document.querySelector('video[src$="' + VIDEO_FILE + '"]');
+      if (v) v.remove();
+    } else {
+      let n = 0;
+      const t2 = setInterval(() => { if (injectHeroVideo() || ++n > 20) clearInterval(t2); }, 250);
     }
   });
 })();
 </script>
-<!-- ═══════════════ END HEADER VIDEO ═══════════════ -->
 </body>
 </html>
